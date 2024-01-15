@@ -1,5 +1,8 @@
 @echo off
 @setlocal
+set tee=groovy YtToZara.groovy
 set ytcmd=\yt -q -x
-set ytAudioOptions=-f 140 --extract-audio --audio-format mp3 --audio-quality 128K
-%ytcmd% %ytAudioOptions% --print filename --no-simulate %* | tee playlist.txt 
+set audioFormat=--audio-format mp3
+set bitRate=--audio-quality 128K
+set ytAudioOptions=-f 140 --extract-audio %audioFormat% %bitRate%
+%ytcmd% %ytAudioOptions% --print filename --no-simulate %* | %tee% playlist.txt

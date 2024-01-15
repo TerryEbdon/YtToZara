@@ -1,0 +1,1 @@
+YtToZara --playlist-items %*
