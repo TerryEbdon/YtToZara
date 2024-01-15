@@ -1,1 +1,1 @@
-YtToZara --playlist-items %*
+@call YtToZara --playlist-items %*
