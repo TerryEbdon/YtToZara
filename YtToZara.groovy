@@ -9,7 +9,6 @@ class YtToZara {
   final AntBuilder ant = new AntBuilder()
 
   public static main(args) {
-<<<<<<< HEAD
     YtToZara ytz = new YtToZara()
     if (args.size() == 0 ) {
       ytz.tee()
@@ -19,16 +18,6 @@ class YtToZara {
   }
 
   void guessMp3Tags( final String trackFileName ) {
-=======
-    if (args.size() == 0 ) {
-      tee()
-    } else {
-      guessMp3Tags()
-    }
-  }
-
-  static void guessMp3Tags( final String trackFileName ) {
->>>>>>> 7630a7159ae38bf512ec9c377f6156003a4ef8d3
     println "Guessing for $trackFileName"
     def trackDetails = trackFileName.split( ' - ')
 
@@ -38,28 +27,19 @@ class YtToZara {
         println 'Track file name missing expected seperators'
         break
       case 2:
-<<<<<<< HEAD
         String artist = trackDetails.first()
         String title  = trackDetails.last()
         println "Artist: $artist"
         println "Title:  $title"
         final String outFileName = "out_$trackFileName"
         applyTags( trackFileName, outFileName, artist, title )
-=======
-        println "Artist: ${trackDetails.first()}"
-        println "Title:  ${trackDetails.last()}"
->>>>>>> 7630a7159ae38bf512ec9c377f6156003a4ef8d3
         break
       default:
         println "Too many separators to decide."
     }
   }
 
-<<<<<<< HEAD
   void tee() {
-=======
-  static void tee() {
->>>>>>> 7630a7159ae38bf512ec9c377f6156003a4ef8d3
     final String tsPattern = 'yyyy-MM-dd_HH-mm-ss-SSS'
     final DateTimeFormatter fmtTs = DateTimeFormatter.ofPattern(tsPattern)
 
