@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+@brief      Log4j2 configuration for YtToZara
+@author     Terry Ebdon
+@date       29-JAN-2024
+@copyright
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ -->
+<Configuration status="WARN">
+  <Properties>
+    <Property name="logPath">logs</Property>
+    <Property name="logLevel">info</Property>
+    <Property name="filePattern">YtToZara-trace-%d{yyyy-MM-dd}.log</Property>
+    <Property name="YtToZaraPattern">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %c{1} %msg%n</Property>
+    <Property name="consolePattern">%msg%n</Property>
+  </Properties>
+  <Appenders>
+    <Console name="consoleLog" target="SYSTEM_OUT">
+      <PatternLayout pattern="${consolePattern}"/>
+    </Console>
+    <RollingFile name="traceLog" fileName="${logPath}/YtToZara-trace.log"
+      filePattern="${logPath}/${filePattern}">
+      <PatternLayout>
+        <pattern>${YtToZaraPattern}</pattern>
+      </PatternLayout>
+      <Policies>
+        <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+      </Policies>
+    </RollingFile>
+    <RollingFile name="errorLog" fileName="${logPath}/YtToZara-error.log"
+                 filePattern="${logPath}/YtToZara-error-%d{yyyy-MM-dd}.log">
+      <PatternLayout>
+        <pattern>${YtToZaraPattern}</pattern>
+      </PatternLayout>
+      <Policies>
+        <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+      </Policies>
+    </RollingFile>
+  </Appenders>
+  <Loggers>
+    <Logger name="net.ebdon.yttozara" level="${logLevel}" additivity="false">
+      <appender-ref ref="traceLog"   level="${logLevel}"/>
+      <appender-ref ref="errorLog"   level="error"/>
+      <appender-ref ref="consoleLog" level="info"/>
+    </Logger>
+    <Root level="error" additivity="false">
+      <AppenderRef ref="consoleLog"/>
+    </Root>
+  </Loggers>
+</Configuration>
