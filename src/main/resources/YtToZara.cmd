@@ -1,6 +1,6 @@
 @echo off
 @setlocal
-set tee=groovy YtToZara.groovy
+set tee=%~dp0\bin\YtToZara.bat
 set ytcmd=\yt -q
 set audioFormat=--audio-format mp3
 set bitRate=--audio-quality 128K
