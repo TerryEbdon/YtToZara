@@ -56,6 +56,7 @@ class YtToZara {
     while ( line != null ) {
       line = br.readLine();
       if (line != null ) {
+        line = line.replaceAll( /\.m4a$/, '.mp3')
         println line
         outFile << line
         outFile << '\n'
@@ -69,11 +70,9 @@ class YtToZara {
     final String artistMd   = "$md artist=$q$artist$q $md album_artist=$q$artist$q"
     final String titleMd    = "$md title=$q$title$q"
     final String logLevel   = '-loglevel error'
-    // final String cmdPrefix  = "ffmpeg $logLevel ffmpeg "
     final String in         = "-i $q$inFileName$q"
     final String out        = "$q$outFileName$q"
 
-    // final String cmd = "$cmdPrefix $in $q$inFileName$q $titleMd $artistMd $out"
     final String args = "$logLevel $in $titleMd $artistMd $out"
 
     ant.echo level:'debug', "args: $args"
