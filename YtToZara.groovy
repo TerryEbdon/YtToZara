@@ -6,32 +6,7 @@ import java.time.ZoneId;
 
 class YtToZara {
   public static main(args) {
-    if (args.size() == 0 ) {
-      tee()
-    } else {
-      guessMp3Tags()
-    }
-  }
-
-  static void guessMp3Tags( final String trackFileName ) {
-    println "Guessing for $trackFileName"
-    def trackDetails = trackFileName.split( ' - ')
-
-    switch( trackDetails.size() ) {
-      case 0:
-      case 1:
-        println 'Track file name missing expected seperators'
-        break
-      case 2:
-        println "Artist: ${trackDetails.first()}"
-        println "Title:  ${trackDetails.last()}"
-        break
-      default:
-        println "Too many separators to decide."
-    }
-  }
-
-  static void tee() {
+    // assert args.size()
     final String tsPattern = 'yyyy-MM-dd_HH-mm-ss-SSS'
     final DateTimeFormatter fmtTs = DateTimeFormatter.ofPattern(tsPattern)
 
