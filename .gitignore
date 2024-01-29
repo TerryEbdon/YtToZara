@@ -11,5 +11,6 @@
 # Ignore Gradle build output directory
 build
 
-# Ignore test folder
-YtToZara
+logs
+YtToZara/*
+
