@@ -32,8 +32,7 @@ class YtToZara {
         String title  = trackDetails.last()
         log.info "Artist: $artist"
         log.info "Title:  $title"
-        final String outFileName = "out_$trackFileName"
-        applyTags( trackFileName, outFileName, artist, title )
+        applyTags( trackFileName, artist, title )
         break
       default:
         log.warn "Too many separators to decide."
@@ -65,27 +64,31 @@ class YtToZara {
     }
   }
 
-  void applyTags( String inFileName, outFileName, artist, title ) {
-    final String q          = '"'
-    final String md         = '-metadata'
-    final String artistMd   = "$md artist=$q$artist$q $md album_artist=$q$artist$q"
-    final String titleMd    = "$md title=$q$title$q"
-    final String logLevel   = '-loglevel error'
-    final String in         = "-i $q$inFileName$q"
-    final String out        = "$q$outFileName$q"
+  void applyTags( String inFileName, artist, title ) {
+    final String q              = '"'
+    final String md             = '-metadata'
+    final String nameMd         = "artist=$q$artist$q"
+    final String artistMd       = "$md $nameMd $md album_$nameMd"
+    final String titleMd        = "$md title=$q$title$q"
+    final String logLevel       = '-loglevel error'
+    final String in             = "-i $q$inFileName$q"
+    final String outFileName    = 'out_' + cleanFileName( inFileName )
+    final String out            = "$q$outFileName$q"
 
     final String args = "$logLevel $in $titleMd $artistMd $out"
-
+    log.info "Tagging $inFileName"
+    log.info "New name is $outFileName"
     log.debug "args: $args"
-    
+
     ant.exec (
       dir               : '.',
       executable        : 'ffmpeg.exe',
       outputproperty    : 'cmdOut',
       errorproperty     : 'cmdError',
-      resultproperty    : 'cmdResult' ) {
-        arg( line: args )
-      }
+      resultproperty    : 'cmdResult'
+    ) {
+      arg( line: args )
+    }
 
     final int execRes       = ant.project.properties.cmdResult.toInteger()
     final String execOut    = ant.project.properties.cmdOut
@@ -100,5 +103,19 @@ class YtToZara {
       log.warn "out: $execOut"
       log.warn "result: $execRes"
     }
+  }
+
+  final String cleanFileName( inFileName ) {
+
+    final String prefix       = /(?i)[\(\[]/
+    final String official     = /Official\s+/
+    final String hd           = /(HD\s+)?/
+    final String remastered   = /(remastered\s+)?/
+    final String music        = /(Music\s+)?/
+    final String video        = /Video/
+    final String suffix       = /[\)\]](?-i)/
+
+    final String regex = "$prefix$official$hd$remastered$hd$music$video$suffix"
+    inFileName.replaceAll( regex, '').replaceAll(/\s+\.mp3$/,'.mp3')
   }
 }
