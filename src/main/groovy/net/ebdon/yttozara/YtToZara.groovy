@@ -8,11 +8,14 @@ import java.time.ZoneId;
 @groovy.util.logging.Log4j2
 class YtToZara {
   final AntBuilder ant = new AntBuilder()
+  def trackList = []
+  def trackDetails = []
 
   public static main(args) {
     YtToZara ytz = new YtToZara()
     if (args.size() == 0 ) {
       ytz.tee()
+      ytz.createZaraPlaylist()
     } else {
       ytz.guessMp3Tags( args.first() )
     }
@@ -60,7 +63,16 @@ class YtToZara {
         log.info "Downloading $line"
         outFile << line
         outFile << '\n'
+        trackList << line
       }
+    }
+  }
+
+  void createZaraPlaylist() {
+    println 'Creating Zara Playlist'
+    trackList.each { string trackFileName ->
+      guessMp3Tags(trackFileName)
+
     }
   }
 
