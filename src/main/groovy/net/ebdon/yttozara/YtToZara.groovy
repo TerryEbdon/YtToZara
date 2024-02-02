@@ -1,21 +1,43 @@
 package net.ebdon.yttozara
 
 import groovy.ant.AntBuilder
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.ZoneId;
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.ZoneId
+import org.jaudiotagger.audio.AudioFile
+import org.jaudiotagger.audio.AudioFileIO
+import org.jaudiotagger.audio.mp3.MP3AudioHeader
+import java.util.logging.Logger
+import java.util.logging.Level
 
 @groovy.util.logging.Log4j2
 class YtToZara {
-  final AntBuilder ant = new AntBuilder()
+  public static Logger audioTagLogger = Logger.getLogger('org.jaudiotagger')
+  final String outPrefix    = 'out_'
+  final AntBuilder ant      = new AntBuilder()
+  final String timestamp
+  def trackList             = []
+  def trackDetails          = []
 
   public static main(args) {
     YtToZara ytz = new YtToZara()
     if (args.size() == 0 ) {
       ytz.tee()
+      ytz.createZaraPlaylist()
     } else {
       ytz.guessMp3Tags( args.first() )
     }
+  }
+
+  YtToZara() {
+    audioTagLogger.setLevel(Level.WARNING)
+    final String tsPattern = 'yyyy-MM-dd_HH-mm-ss-SSS'
+    final DateTimeFormatter fmtTs = DateTimeFormatter.ofPattern(tsPattern)
+
+    final ZoneId zoneId                  = ZoneId.of('Etc/UTC')
+    final ZonedDateTime playListFileTime = ZonedDateTime.now(zoneId)
+
+    timestamp = playListFileTime.format(fmtTs)
   }
 
   void guessMp3Tags( final String trackFileName ) {
@@ -40,13 +62,6 @@ class YtToZara {
   }
 
   void tee() {
-    final String tsPattern = 'yyyy-MM-dd_HH-mm-ss-SSS'
-    final DateTimeFormatter fmtTs = DateTimeFormatter.ofPattern(tsPattern)
-
-    final ZoneId zoneId                  = ZoneId.of('Etc/UTC')
-    final ZonedDateTime playListFileTime = ZonedDateTime.now(zoneId)
-
-    final String timestamp    = playListFileTime.format(fmtTs)
     final String plFileName   = "pl_${timestamp}.txt"
 
     log.info "Creating playlist: $plFileName"
@@ -60,8 +75,42 @@ class YtToZara {
         log.info "Downloading $line"
         outFile << line
         outFile << '\n'
+        trackList << line
       }
     }
+  }
+
+  void createZaraPlaylist() {
+    final String zaraPlFileName = "${timestamp}.lst"
+    def zaraTracks = []
+    println "Creating Zara Playlist: $zaraPlFileName"
+    trackList.each { String trackFileName ->
+      guessMp3Tags(trackFileName)
+      File trackFile = new File( trackFileName )
+      if ( trackFile.exists() ) {
+        zaraTracks << [duration(trackFile),trackFile.absolutePath]
+      } else {
+        log.error "Can't find file $trackFileName"
+      }
+    }
+    File zaraPlayList = new File( zaraPlFileName )
+    zaraPlayList << String.format('%d%n', zaraTracks.size())
+    zaraTracks.each { track ->
+      zaraPlayList << track.join('\t')
+      zaraPlayList << '\n'
+    }
+  }
+
+  Long duration( File trackFile ) { // Based on SpotToZara.fixMetadata()
+    AudioFile audioFile = AudioFileIO.read( trackFile )
+
+    MP3AudioHeader audioHeader = audioFile.getAudioHeader();
+    String newLengthStr = audioHeader.getTrackLength();
+    Long newlength = newLengthStr.toLong()
+    Long mins = newlength / 60
+    Long secs = newlength % 60
+    log.debug "Track length: $newLengthStr = $mins mins, $secs secs"
+    newlength * 1000
   }
 
   void applyTags( String inFileName, artist, title ) {
@@ -72,7 +121,7 @@ class YtToZara {
     final String titleMd        = "$md title=$q$title$q"
     final String logLevel       = '-loglevel error'
     final String in             = "-i $q$inFileName$q"
-    final String outFileName    = 'out_' + cleanFileName( inFileName )
+    final String outFileName    = outPrefix + cleanFileName( inFileName )
     final String out            = "$q$outFileName$q"
 
     final String args = "$logLevel $in $titleMd $artistMd $out"
@@ -102,11 +151,14 @@ class YtToZara {
       log.error execErr
       log.warn "out: $execOut"
       log.warn "result: $execRes"
+    } else {
+      final String backupName = inFileName[0..-5]+'.bak'
+      ant.move( file:inFileName,  tofile: backupName )
+      ant.move( file:outFileName, tofile: inFileName )
     }
   }
 
   final String cleanFileName( inFileName ) {
-
     final String prefix       = /(?i)[\(\[]/
     final String official     = /Official\s+/
     final String hd           = /(HD\s+)?/
