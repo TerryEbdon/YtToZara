@@ -5,6 +5,7 @@
 *.description
 *.m4a
 *.bak
+*.lst
 
 # Ignore Gradle project-specific cache directory
 .gradle

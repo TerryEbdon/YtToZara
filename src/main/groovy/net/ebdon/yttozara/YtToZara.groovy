@@ -1,14 +1,21 @@
 package net.ebdon.yttozara
 
 import groovy.ant.AntBuilder
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.ZoneId;
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.ZoneId
+import org.jaudiotagger.audio.AudioFile
+import org.jaudiotagger.audio.AudioFileIO
+import org.jaudiotagger.audio.mp3.MP3AudioHeader
+import java.util.logging.Logger
+import java.util.logging.Level
 
 @groovy.util.logging.Log4j2
 class YtToZara {
+  public static Logger audioTagLogger = Logger.getLogger('org.jaudiotagger')
   final String outPrefix    = 'out_'
   final AntBuilder ant      = new AntBuilder()
+  final String timestamp
   def trackList             = []
   def trackDetails          = []
 
@@ -20,6 +27,17 @@ class YtToZara {
     } else {
       ytz.guessMp3Tags( args.first() )
     }
+  }
+
+  YtToZara() {
+    audioTagLogger.setLevel(Level.WARNING)
+    final String tsPattern = 'yyyy-MM-dd_HH-mm-ss-SSS'
+    final DateTimeFormatter fmtTs = DateTimeFormatter.ofPattern(tsPattern)
+
+    final ZoneId zoneId                  = ZoneId.of('Etc/UTC')
+    final ZonedDateTime playListFileTime = ZonedDateTime.now(zoneId)
+
+    timestamp = playListFileTime.format(fmtTs)
   }
 
   void guessMp3Tags( final String trackFileName ) {
@@ -44,13 +62,6 @@ class YtToZara {
   }
 
   void tee() {
-    final String tsPattern = 'yyyy-MM-dd_HH-mm-ss-SSS'
-    final DateTimeFormatter fmtTs = DateTimeFormatter.ofPattern(tsPattern)
-
-    final ZoneId zoneId                  = ZoneId.of('Etc/UTC')
-    final ZonedDateTime playListFileTime = ZonedDateTime.now(zoneId)
-
-    final String timestamp    = playListFileTime.format(fmtTs)
     final String plFileName   = "pl_${timestamp}.txt"
 
     log.info "Creating playlist: $plFileName"
@@ -70,11 +81,36 @@ class YtToZara {
   }
 
   void createZaraPlaylist() {
-    println 'Creating Zara Playlist'
+    final String zaraPlFileName = "${timestamp}.lst"
+    def zaraTracks = []
+    println "Creating Zara Playlist: $zaraPlFileName"
     trackList.each { String trackFileName ->
       guessMp3Tags(trackFileName)
-
+      File trackFile = new File( trackFileName )
+      if ( trackFile.exists() ) {
+        zaraTracks << [duration(trackFile),trackFile.absolutePath]
+      } else {
+        log.error "Can't find file $trackFileName"
+      }
     }
+    File zaraPlayList = new File( zaraPlFileName )
+    zaraPlayList << String.format('%d%n', zaraTracks.size())
+    zaraTracks.each { track ->
+      zaraPlayList << track.join('\t')
+      zaraPlayList << '\n'
+    }
+  }
+
+  Long duration( File trackFile ) { // Based on SpotToZara.fixMetadata()
+    AudioFile audioFile = AudioFileIO.read( trackFile )
+
+    MP3AudioHeader audioHeader = audioFile.getAudioHeader();
+    String newLengthStr = audioHeader.getTrackLength();
+    Long newlength = newLengthStr.toLong()
+    Long mins = newlength / 60
+    Long secs = newlength % 60
+    log.debug "Track length: $newLengthStr = $mins mins, $secs secs"
+    newlength * 1000
   }
 
   void applyTags( String inFileName, artist, title ) {
