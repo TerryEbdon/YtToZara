@@ -7,9 +7,10 @@ import java.time.ZoneId;
 
 @groovy.util.logging.Log4j2
 class YtToZara {
-  final AntBuilder ant = new AntBuilder()
-  def trackList = []
-  def trackDetails = []
+  final String outPrefix    = 'out_'
+  final AntBuilder ant      = new AntBuilder()
+  def trackList             = []
+  def trackDetails          = []
 
   public static main(args) {
     YtToZara ytz = new YtToZara()
@@ -70,7 +71,7 @@ class YtToZara {
 
   void createZaraPlaylist() {
     println 'Creating Zara Playlist'
-    trackList.each { string trackFileName ->
+    trackList.each { String trackFileName ->
       guessMp3Tags(trackFileName)
 
     }
@@ -84,7 +85,7 @@ class YtToZara {
     final String titleMd        = "$md title=$q$title$q"
     final String logLevel       = '-loglevel error'
     final String in             = "-i $q$inFileName$q"
-    final String outFileName    = 'out_' + cleanFileName( inFileName )
+    final String outFileName    = outPrefix + cleanFileName( inFileName )
     final String out            = "$q$outFileName$q"
 
     final String args = "$logLevel $in $titleMd $artistMd $out"
@@ -114,11 +115,14 @@ class YtToZara {
       log.error execErr
       log.warn "out: $execOut"
       log.warn "result: $execRes"
+    } else {
+      final String backupName = inFileName[0..-5]+'.bak'
+      ant.move( file:inFileName,  tofile: backupName )
+      ant.move( file:outFileName, tofile: inFileName )
     }
   }
 
   final String cleanFileName( inFileName ) {
-
     final String prefix       = /(?i)[\(\[]/
     final String official     = /Official\s+/
     final String hd           = /(HD\s+)?/
