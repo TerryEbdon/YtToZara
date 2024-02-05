@@ -1,6 +1,7 @@
 package net.ebdon.yttozara
 
 import groovy.ant.AntBuilder
+import groovy.json.JsonSlurper
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.ZoneId
@@ -13,17 +14,26 @@ import java.util.logging.Level
 @groovy.util.logging.Log4j2
 class YtToZara {
   public static Logger audioTagLogger = Logger.getLogger('org.jaudiotagger')
+  
   final String outPrefix    = 'out_'
   final AntBuilder ant      = new AntBuilder()
-  final String timestamp
   def trackList             = []
+  def zaraTracks            = []
   def trackDetails          = []
+  String playlistTitle      = ''
+  String zaraPlFileName     = ''
+  
+  final String timestamp
+  File jsonFile
+  def ytMetadata
+
 
   public static main(args) {
     YtToZara ytz = new YtToZara()
     if (args.size() == 0 ) {
       ytz.tee()
       ytz.createZaraPlaylist()
+      ytz.saveZaraPlayList()
     } else {
       ytz.guessMp3Tags( args.first() )
     }
@@ -42,6 +52,16 @@ class YtToZara {
 
   void guessMp3Tags( final String trackFileName ) {
     log.info "Guessing for $trackFileName"
+    parseYouTubeMetadata( trackFileName )
+    grabPlayListTitle()
+    log.debug "Playlist:        $playlistTitle"
+    log.debug "Playlist owner:  ${ytMetadata?.playlist_uploader}"
+    log.debug "Track No.        ${ytMetadata?.playlist_index}"
+    // log.debug ytMetadata?.description
+    log.debug "YT Arist: ${ytMetadata?.artist}"
+    log.debug "YT Album: ${ytMetadata?.album}"
+    log.debug "YT Track: ${ytMetadata?.track}"
+    log.debug "YT Irish: ${ytIrish()}"
     def trackDetails = trackFileName.split( ' - ')
 
     switch( trackDetails.size() ) {
@@ -61,10 +81,15 @@ class YtToZara {
     }
   }
 
+  Boolean ytIrish() {
+    final String irishRegex =  /(?i)(\s+|^)irish(\s+|$)/
+    ytMetadata?.description.findAll( irishRegex )
+  }
+
   void tee() {
     final String plFileName   = "pl_${timestamp}.txt"
 
-    log.info "Creating playlist: $plFileName"
+    log.info "Creating playlist as files download"
     File outFile = new File( plFileName )
     String line =''
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in))
@@ -81,11 +106,12 @@ class YtToZara {
   }
 
   void createZaraPlaylist() {
-    final String zaraPlFileName = "${timestamp}.lst"
-    def zaraTracks = []
-    println "Creating Zara Playlist: $zaraPlFileName"
+    // def zaraTracks = []
+    println "Loading ZaraRadio playlist"
     trackList.each { String trackFileName ->
+      // parseYouTubeMetadata( trackFileName )
       guessMp3Tags(trackFileName)
+      // grabPlayListTitle()
       File trackFile = new File( trackFileName )
       if ( trackFile.exists() ) {
         zaraTracks << [duration(trackFile),trackFile.absolutePath]
@@ -93,11 +119,38 @@ class YtToZara {
         log.error "Can't find file $trackFileName"
       }
     }
+  }
+
+  void saveZaraPlayList() {
+    zaraPlFileName = playlistTitle?.empty ? timestamp : zaraPlFileName
+    zaraPlFileName += '.lst'
+    println "Saving playlist: $zaraPlFileName"
     File zaraPlayList = new File( zaraPlFileName )
     zaraPlayList << String.format('%d%n', zaraTracks.size())
     zaraTracks.each { track ->
       zaraPlayList << track.join('\t')
       zaraPlayList << '\n'
+    }
+  }
+
+  void grabPlayListTitle() {
+    if ( playlistTitle.empty ) {
+      final String ytPlTitle = ytMetadata?.playlist_title
+      playlistTitle = ytPlTitle ?: ''
+      log.debug "Changed playlistTitle  to $playlistTitle"
+      log.debug "Changed zaraPlFileName to $zaraPlFileName"
+    }
+  }
+
+  void parseYouTubeMetadata( final String trackFileName ) {
+    final String jsonFileName = trackFileName.replaceAll( /\.mp3$/, '.info.json')
+    jsonFile = new File( jsonFileName )
+    if ( jsonFile.exists() ) {
+      log.debug "Parsing JSON: $jsonFileName"
+      ytMetadata = new JsonSlurper().parse( jsonFile )
+    } else {
+      log.warn "Mising: $jsonFileName"
+      ytMetadata = null
     }
   }
 
