@@ -6,8 +6,7 @@
 *.m4a
 *.bak
 *.lst
-*.json
-*.webm
+
 # Ignore Gradle project-specific cache directory
 .gradle
 
@@ -16,6 +15,4 @@ build
 
 logs
 YtToZara/*
-test
 
-YtToZara.zip
