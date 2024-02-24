@@ -32,6 +32,7 @@ class YtToZara {
     YtToZara ytz = new YtToZara()
     if (args.size() == 0 ) {
       ytz.tee()
+      log.info "Download complete, analysing playlist data"
       ytz.createZaraPlaylist()
       ytz.saveZaraPlayList()
     } else {
@@ -54,10 +55,10 @@ class YtToZara {
     log.info "Guessing for $trackFileName"
     parseYouTubeMetadata( trackFileName )
     grabPlayListTitle()
-    log.debug "Playlist:        $playlistTitle"
-    log.debug "Playlist owner:  ${ytMetadata?.playlist_uploader}"
-    log.debug "Track No.        ${ytMetadata?.playlist_index}"
-    // log.debug ytMetadata?.description
+    log.info "Playlist:        $playlistTitle"
+    log.info "Playlist owner:  ${ytMetadata?.playlist_uploader}"
+    log.info "Track No.        ${ytMetadata?.playlist_index}"
+    // log.info ytMetadata?.description
     log.debug "YT Arist: ${ytMetadata?.artist}"
     log.debug "YT Album: ${ytMetadata?.album}"
     log.debug "YT Track: ${ytMetadata?.track}"
@@ -83,7 +84,7 @@ class YtToZara {
 
   Boolean ytIrish() {
     final String irishRegex =  /(?i)(\s+|^)irish(\s+|$)/
-    ytMetadata?.description.findAll( irishRegex )
+    ytMetadata?.description?.findAll( irishRegex )
   }
 
   void tee() {
@@ -110,21 +111,22 @@ class YtToZara {
     println "Loading ZaraRadio playlist"
     trackList.each { String trackFileName ->
       // parseYouTubeMetadata( trackFileName )
-      guessMp3Tags(trackFileName)
-      // grabPlayListTitle()
-      File trackFile = new File( trackFileName )
-      if ( trackFile.exists() ) {
-        zaraTracks << [duration(trackFile),trackFile.absolutePath]
-      } else {
-        log.error "Can't find file $trackFileName"
+      if ( !trackFileName?.empty ) {
+        guessMp3Tags(trackFileName)
+        File trackFile = new File( trackFileName )
+        if ( trackFile.exists() ) {
+          zaraTracks << [duration(trackFile),trackFile.absolutePath]
+        } else {
+          log.error "Can't find file $trackFileName"
+        }
       }
     }
   }
 
   void saveZaraPlayList() {
-    zaraPlFileName = playlistTitle?.empty ? timestamp : zaraPlFileName
+    log.info "Saving playlist: $playlistTitle"
+    zaraPlFileName = playlistTitle?.empty ? timestamp : playlistTitle
     zaraPlFileName += '.lst'
-    println "Saving playlist: $zaraPlFileName"
     File zaraPlayList = new File( zaraPlFileName )
     zaraPlayList << String.format('%d%n', zaraTracks.size())
     zaraTracks.each { track ->
@@ -139,6 +141,8 @@ class YtToZara {
       playlistTitle = ytPlTitle ?: ''
       log.debug "Changed playlistTitle  to $playlistTitle"
       log.debug "Changed zaraPlFileName to $zaraPlFileName"
+    } else {
+      log.debug "playlist_title not found"
     }
   }
 
@@ -206,8 +210,12 @@ class YtToZara {
       log.warn "result: $execRes"
     } else {
       final String backupName = inFileName[0..-5]+'.bak'
-      ant.move( file:inFileName,  tofile: backupName )
-      ant.move( file:outFileName, tofile: inFileName )
+      try {
+        ant.move( file:inFileName,  tofile: backupName, failonerror: true )
+        ant.move( file:outFileName, tofile: inFileName, failonerror: true )
+      } catch (Exception exe) {
+        log.error "applyTags failed to rename file $inFileName"
+      }
     }
   }
 
