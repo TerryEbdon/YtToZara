@@ -32,9 +32,8 @@ class YtToZara {
     YtToZara ytz = new YtToZara()
     if (args.size() == 0 ) {
       ytz.tee()
-      log.info "Download complete, analysing playlist data"
-      ytz.createZaraPlaylist()
-      ytz.saveZaraPlayList()
+      ytz.analysePlaylist()
+      ytz.trimSilence()
     } else {
       ytz.guessMp3Tags( args.first() )
     }
@@ -49,6 +48,58 @@ class YtToZara {
     final ZonedDateTime playListFileTime = ZonedDateTime.now(zoneId)
 
     timestamp = playListFileTime.format(fmtTs)
+  }
+
+  void trimSilence() {
+    log.info 'Trimming silence from start and end of tracks.'
+    trackList.each { String trackFileName ->
+      trimAudio( trackFileName )
+    }
+  }
+
+  void trimAudio( final String mp3FileName ) {
+    final String logLevel = '-loglevel error'
+    final String q = '"'
+    final String input = "-i $q$mp3FileName$q"
+    final String trimmedFileName = "trimmed_$mp3FileName"
+    final String untrimmedFileName = "untrimmed_$mp3FileName"
+
+    final String trimTrackArgs = 
+      'areverse,atrim=start=0.2,silenceremove=start_periods=1:start_silence=0.1:start_threshold=0.02:stop_silence=0.5'
+    final String ffmpedArgs = "$logLevel -af $q$trimTrackArgs,$trimTrackArgs$q"
+    final String argsLine = "-y $input $ffmpedArgs $q$trimmedFileName$q"
+    log.info "argsLine: $argsLine"
+    ant.exec (
+      dir               : '.',
+      executable        : 'ffmpeg',
+      outputproperty    : 'trimCmdOut',
+      errorproperty     : 'trimCmdError',
+      resultproperty    : 'trimCmdResult'
+    ) {
+      arg( line: argsLine )
+    }
+    final int execRes       = ant.project.properties.trimCmdResult.toInteger()
+    final String execOut    = ant.project.properties.trimCmdOut
+    final String execErr    = ant.project.properties.trimCmdError
+    log.info "trimAudio execOut = $execOut"
+    log.info "trimAudio execErr = $execErr"
+    log.info "trimAudio execRes = $execRes"
+
+    if ( !execErr.empty ) {
+      log.error 'Could not trim audio'
+      log.error execErr
+      log.warn "out: $execOut"
+      log.warn "result: $execRes"
+    } else {
+      ant.move( file:mp3FileName,     tofile: untrimmedFileName, failonerror: true )
+      ant.move( file:trimmedFileName, tofile: mp3FileName, failonerror: true )
+    }
+  }
+
+  void analysePlaylist() {
+    log.info "Download complete, analysing playlist data"
+    createZaraPlaylist()
+    saveZaraPlayList()
   }
 
   void guessMp3Tags( final String trackFileName ) {
