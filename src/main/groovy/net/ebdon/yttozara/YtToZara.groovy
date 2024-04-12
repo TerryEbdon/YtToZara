@@ -10,6 +10,7 @@ import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.audio.mp3.MP3AudioHeader
 import java.util.logging.Logger
 import java.util.logging.Level
+import java.nio.file.FileSystemException
 
 @groovy.util.logging.Log4j2
 class YtToZara {
@@ -91,9 +92,16 @@ class YtToZara {
       log.warn "out: $execOut"
       log.warn "result: $execRes"
     } else {
-      ant.move( file:mp3FileName,     tofile: untrimmedFileName, failonerror: true )
-      ant.move( file:trimmedFileName, tofile: mp3FileName, failonerror: true )
+      ant.delete file: mp3FileName, verbose: true, failonerror: true
+      moveFile trimmedFileName, mp3FileName
     }
+  }
+
+  void moveFile( final String fromFileName, final String toFileName ) {
+    ant.move(
+      file: fromFileName, tofile: toFileName,
+      failonerror: true, verbose: true, overwrite: true, force:true
+    )
   }
 
   void analysePlaylist() {
