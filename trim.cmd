@@ -1,0 +1,1 @@
+@ffmpeg -i "%*" -af "silenceremove=start_periods=1:start_duration=0:start_threshold=-26dB:stop_silence=0.5:detection=peak,aformat=dblp,areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-26dB:stop_silence=0.5:detection=peak,aformat=dblp,areverse" "trimmed_ss\%*"
