@@ -20,3 +20,8 @@ test
 
 YtToZara.zip
 *.RPT
+*.chm
+*.mo
+*.dat
+*.dll
+trimAll.cmd

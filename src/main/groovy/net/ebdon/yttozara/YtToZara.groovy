@@ -28,13 +28,13 @@ class YtToZara {
   File jsonFile
   def ytMetadata
 
-
   public static main(args) {
     YtToZara ytz = new YtToZara()
     if (args.size() == 0 ) {
       ytz.tee()
       ytz.analysePlaylist()
       ytz.trimSilence()
+      ytz.tidyOutputFolder()
     } else {
       ytz.guessMp3Tags( args.first() )
     }
@@ -290,4 +290,13 @@ class YtToZara {
     final String regex = "$prefix$official$hd$remastered$hd$music$video$suffix"
     inFileName.replaceAll( regex, '').replaceAll(/\s+\.mp3$/,'.mp3')
   }
+
+  void tidyOutputFolder() {
+    ant.delete {
+      fileset( dir: '.' ) {
+        include( name: '*.bak')
+        include( name: '*.json')
+      }
+    }
+  } 
 }
