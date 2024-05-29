@@ -186,6 +186,10 @@ class YtToZara {
     log.info "Saving playlist: $playlistTitle"
     zaraPlFileName = playlistTitle?.empty ? timestamp : playlistTitle
     zaraPlFileName += '.lst'
+    ['\\','/',':','"',' '].each {
+      zaraPlFileName = zaraPlFileName.replace(it, '_')
+    }
+    log.info "Playlist file name: $zaraPlFileName"
     File zaraPlayList = new File( zaraPlFileName )
     zaraPlayList << String.format('%d%n', zaraTracks.size())
     zaraTracks.each { track ->
