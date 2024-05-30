@@ -69,7 +69,7 @@ class YtToZara {
       'areverse,atrim=start=0.2,silenceremove=start_periods=1:start_silence=0.1:start_threshold=0.02:stop_silence=0.5'
     final String ffmpedArgs = "$logLevel -af $q$trimTrackArgs,$trimTrackArgs$q"
     final String argsLine = "-y $input $ffmpedArgs $q$trimmedFileName$q"
-    log.info "argsLine: $argsLine"
+    log.debug "argsLine: $argsLine"
     ant.exec (
       dir               : '.',
       executable        : 'ffmpeg',
@@ -82,9 +82,9 @@ class YtToZara {
     final int execRes       = ant.project.properties.trimCmdResult.toInteger()
     final String execOut    = ant.project.properties.trimCmdOut
     final String execErr    = ant.project.properties.trimCmdError
-    log.info "trimAudio execOut = $execOut"
-    log.info "trimAudio execErr = $execErr"
-    log.info "trimAudio execRes = $execRes"
+    log.debug "trimAudio execOut = $execOut"
+    log.debug "trimAudio execErr = $execErr"
+    log.debug "trimAudio execRes = $execRes"
 
     if ( !execErr.empty ) {
       log.error 'Could not trim audio'
@@ -92,7 +92,7 @@ class YtToZara {
       log.warn "out: $execOut"
       log.warn "result: $execRes"
     } else {
-      ant.delete file: mp3FileName, verbose: true, failonerror: true
+      ant.delete file: mp3FileName, verbose: false, failonerror: true
       moveFile trimmedFileName, mp3FileName
     }
   }
@@ -100,7 +100,7 @@ class YtToZara {
   void moveFile( final String fromFileName, final String toFileName ) {
     ant.move(
       file: fromFileName, tofile: toFileName,
-      failonerror: true, verbose: true, overwrite: true, force:true
+      failonerror: true, verbose: false, overwrite: true, force:true
     )
   }
 
