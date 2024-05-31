@@ -41,7 +41,7 @@ class YtToZara {
   }
 
   YtToZara() {
-    audioTagLogger.setLevel(Level.WARNING)
+    audioTagLogger.setLevel(Level.SEVERE)
     final String tsPattern = 'yyyy-MM-dd_HH-mm-ss-SSS'
     final DateTimeFormatter fmtTs = DateTimeFormatter.ofPattern(tsPattern)
 
@@ -69,7 +69,7 @@ class YtToZara {
       'areverse,atrim=start=0.2,silenceremove=start_periods=1:start_silence=0.1:start_threshold=0.02:stop_silence=0.5'
     final String ffmpedArgs = "$logLevel -af $q$trimTrackArgs,$trimTrackArgs$q"
     final String argsLine = "-y $input $ffmpedArgs $q$trimmedFileName$q"
-    log.info "argsLine: $argsLine"
+    log.debug "argsLine: $argsLine"
     ant.exec (
       dir               : '.',
       executable        : 'ffmpeg',
@@ -82,17 +82,17 @@ class YtToZara {
     final int execRes       = ant.project.properties.trimCmdResult.toInteger()
     final String execOut    = ant.project.properties.trimCmdOut
     final String execErr    = ant.project.properties.trimCmdError
-    log.info "trimAudio execOut = $execOut"
-    log.info "trimAudio execErr = $execErr"
-    log.info "trimAudio execRes = $execRes"
+    log.debug "trimAudio execOut = $execOut"
+    log.debug "trimAudio execErr = $execErr"
+    log.debug "trimAudio execRes = $execRes"
 
     if ( !execErr.empty ) {
       log.error 'Could not trim audio'
       log.error execErr
-      log.warn "out: $execOut"
-      log.warn "result: $execRes"
+      log.debug "out: $execOut"
+      log.debug "result: $execRes"
     } else {
-      ant.delete file: mp3FileName, verbose: true, failonerror: true
+      ant.delete file: mp3FileName, verbose: false, failonerror: true
       moveFile trimmedFileName, mp3FileName
     }
   }
@@ -100,7 +100,7 @@ class YtToZara {
   void moveFile( final String fromFileName, final String toFileName ) {
     ant.move(
       file: fromFileName, tofile: toFileName,
-      failonerror: true, verbose: true, overwrite: true, force:true
+      failonerror: true, verbose: false, overwrite: true, force:true
     )
   }
 
@@ -114,9 +114,11 @@ class YtToZara {
     log.info "Guessing for $trackFileName"
     parseYouTubeMetadata( trackFileName )
     grabPlayListTitle()
-    log.info "Playlist:        $playlistTitle"
-    log.info "Playlist owner:  ${ytMetadata?.playlist_uploader}"
-    log.info "Track No.        ${ytMetadata?.playlist_index}"
+    if ( ytMetadata?.playlist_index == 1 ) {
+      log.info "Playlist:        $playlistTitle"
+      log.info "Playlist owner:  ${ytMetadata?.playlist_uploader}"
+    }
+    log.debug "Track No.        ${ytMetadata?.playlist_index}"
     // log.info ytMetadata?.description
     log.debug "YT Arist: ${ytMetadata?.artist}"
     log.debug "YT Album: ${ytMetadata?.album}"
@@ -127,17 +129,17 @@ class YtToZara {
     switch( trackDetails.size() ) {
       case 0:
       case 1:
-        log.warn 'Track file name missing expected seperators'
+        log.debug 'Track file name missing expected seperators'
         break
       case 2:
         String artist = trackDetails.first()
         String title  = trackDetails.last()
-        log.info "Artist: $artist"
-        log.info "Title:  $title"
+        log.debug "Artist: $artist"
+        log.debug "Title:  $title"
         applyTags( trackFileName, artist, title )
         break
       default:
-        log.warn "Too many separators to decide."
+        log.debug "Too many separators to decide."
     }
   }
 
@@ -212,7 +214,7 @@ class YtToZara {
       log.debug "Parsing JSON: $jsonFileName"
       ytMetadata = new JsonSlurper().parse( jsonFile )
     } else {
-      log.warn "Mising: $jsonFileName"
+      log.debug "Mising: $jsonFileName"
       ytMetadata = null
     }
   }
@@ -242,7 +244,7 @@ class YtToZara {
 
     final String args = "$logLevel $in $titleMd $artistMd $out"
     log.info "Tagging $inFileName"
-    log.info "New name is $outFileName"
+    log.debug "New name is $outFileName"
     log.debug "args: $args"
 
     ant.exec (
@@ -265,13 +267,13 @@ class YtToZara {
 
     if ( !execErr.empty ) {
       log.error execErr
-      log.warn "out: $execOut"
-      log.warn "result: $execRes"
+      log.debug "out: $execOut"
+      log.debug "result: $execRes"
     } else {
       final String backupName = inFileName[0..-5]+'.bak'
       try {
-        ant.move( file:inFileName,  tofile: backupName, failonerror: true )
-        ant.move( file:outFileName, tofile: inFileName, failonerror: true )
+        ant.move( file:inFileName,  tofile: backupName, verbose: false, failonerror: true )
+        ant.move( file:outFileName, tofile: inFileName, verbose: false, failonerror: true )
       } catch (Exception exe) {
         log.error "applyTags failed to rename file $inFileName"
       }
@@ -292,7 +294,7 @@ class YtToZara {
   }
 
   void tidyOutputFolder() {
-    ant.delete {
+    ant.delete(verbose: false) {
       fileset( dir: '.' ) {
         include( name: '*.bak')
         include( name: '*.json')
