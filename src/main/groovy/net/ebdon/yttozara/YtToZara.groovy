@@ -41,7 +41,7 @@ class YtToZara {
   }
 
   YtToZara() {
-    audioTagLogger.setLevel(Level.WARNING)
+    audioTagLogger.setLevel(Level.SEVERE)
     final String tsPattern = 'yyyy-MM-dd_HH-mm-ss-SSS'
     final DateTimeFormatter fmtTs = DateTimeFormatter.ofPattern(tsPattern)
 
@@ -89,8 +89,8 @@ class YtToZara {
     if ( !execErr.empty ) {
       log.error 'Could not trim audio'
       log.error execErr
-      log.warn "out: $execOut"
-      log.warn "result: $execRes"
+      log.debug "out: $execOut"
+      log.debug "result: $execRes"
     } else {
       ant.delete file: mp3FileName, verbose: false, failonerror: true
       moveFile trimmedFileName, mp3FileName
@@ -114,9 +114,11 @@ class YtToZara {
     log.info "Guessing for $trackFileName"
     parseYouTubeMetadata( trackFileName )
     grabPlayListTitle()
-    log.info "Playlist:        $playlistTitle"
-    log.info "Playlist owner:  ${ytMetadata?.playlist_uploader}"
-    log.info "Track No.        ${ytMetadata?.playlist_index}"
+    if ( ytMetadata?.playlist_index == 1 ) {
+      log.info "Playlist:        $playlistTitle"
+      log.info "Playlist owner:  ${ytMetadata?.playlist_uploader}"
+    }
+    log.debug "Track No.        ${ytMetadata?.playlist_index}"
     // log.info ytMetadata?.description
     log.debug "YT Arist: ${ytMetadata?.artist}"
     log.debug "YT Album: ${ytMetadata?.album}"
@@ -127,17 +129,17 @@ class YtToZara {
     switch( trackDetails.size() ) {
       case 0:
       case 1:
-        log.warn 'Track file name missing expected seperators'
+        log.debug 'Track file name missing expected seperators'
         break
       case 2:
         String artist = trackDetails.first()
         String title  = trackDetails.last()
-        log.info "Artist: $artist"
-        log.info "Title:  $title"
+        log.debug "Artist: $artist"
+        log.debug "Title:  $title"
         applyTags( trackFileName, artist, title )
         break
       default:
-        log.warn "Too many separators to decide."
+        log.debug "Too many separators to decide."
     }
   }
 
@@ -216,7 +218,7 @@ class YtToZara {
       log.debug "Parsing JSON: $jsonFileName"
       ytMetadata = new JsonSlurper().parse( jsonFile )
     } else {
-      log.warn "Mising: $jsonFileName"
+      log.debug "Mising: $jsonFileName"
       ytMetadata = null
     }
   }
@@ -246,7 +248,7 @@ class YtToZara {
 
     final String args = "$logLevel $in $titleMd $artistMd $out"
     log.info "Tagging $inFileName"
-    log.info "New name is $outFileName"
+    log.debug "New name is $outFileName"
     log.debug "args: $args"
 
     ant.exec (
@@ -269,13 +271,13 @@ class YtToZara {
 
     if ( !execErr.empty ) {
       log.error execErr
-      log.warn "out: $execOut"
-      log.warn "result: $execRes"
+      log.debug "out: $execOut"
+      log.debug "result: $execRes"
     } else {
       final String backupName = inFileName[0..-5]+'.bak'
       try {
-        ant.move( file:inFileName,  tofile: backupName, failonerror: true )
-        ant.move( file:outFileName, tofile: inFileName, failonerror: true )
+        ant.move( file:inFileName,  tofile: backupName, verbose: false, failonerror: true )
+        ant.move( file:outFileName, tofile: inFileName, verbose: false, failonerror: true )
       } catch (Exception exe) {
         log.error "applyTags failed to rename file $inFileName"
       }
@@ -296,7 +298,7 @@ class YtToZara {
   }
 
   void tidyOutputFolder() {
-    ant.delete {
+    ant.delete(verbose: false) {
       fileset( dir: '.' ) {
         include( name: '*.bak')
         include( name: '*.json')
