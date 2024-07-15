@@ -1,6 +1,7 @@
 package net.ebdon.yttozara
 
 import groovy.ant.AntBuilder
+import org.apache.tools.ant.Project
 import groovy.json.JsonSlurper
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -52,6 +53,8 @@ class YtToZara {
 
   YtToZara() {
     audioTagLogger.setLevel(Level.SEVERE)
+    ant.project.buildListeners[0].messageOutputLevel = Project.MSG_WARN
+
     final String tsPattern = 'yyyy-MM-dd_HH-mm-ss-SSS'
     final DateTimeFormatter fmtTs = DateTimeFormatter.ofPattern(tsPattern)
 
