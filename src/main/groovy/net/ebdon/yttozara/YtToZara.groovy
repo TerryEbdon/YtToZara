@@ -12,11 +12,21 @@ import java.util.logging.Logger
 import java.util.logging.Level
 import java.nio.file.FileSystemException
 
+/**
+ * Convert a youTube playlist into a ZaraRadio playlist.
+ * Trim silence from the start and end of the downloaded tracks.
+ */
+@SuppressWarnings('CatchException')
 @groovy.util.logging.Log4j2
 class YtToZara {
-  public static Logger audioTagLogger = Logger.getLogger('org.jaudiotagger')
+  private static final Logger audioTagLogger = Logger.getLogger('org.jaudiotagger')
   
-  final String outPrefix    = 'out_'
+  final String outPrefix = 'out_'
+  final String logLevel  = '-loglevel error'
+  final String q         = '"'
+  final String currentDir= '.'
+
+
   final AntBuilder ant      = new AntBuilder()
   def trackList             = []
   def zaraTracks            = []
@@ -59,11 +69,8 @@ class YtToZara {
   }
 
   void trimAudio( final String mp3FileName ) {
-    final String logLevel = '-loglevel error'
-    final String q = '"'
     final String input = "-i $q$mp3FileName$q"
     final String trimmedFileName = "trimmed_$mp3FileName"
-    final String untrimmedFileName = "untrimmed_$mp3FileName"
 
     final String trimTrackArgs = 
       'areverse,atrim=start=0.2,silenceremove=start_periods=1:start_silence=0.1:start_threshold=0.02:stop_silence=0.5'
@@ -71,7 +78,7 @@ class YtToZara {
     final String argsLine = "-y $input $ffmpedArgs $q$trimmedFileName$q"
     log.debug "argsLine: $argsLine"
     ant.exec (
-      dir               : '.',
+      dir               : currentDir,
       executable        : 'ffmpeg',
       outputproperty    : 'trimCmdOut',
       errorproperty     : 'trimCmdError',
@@ -106,7 +113,7 @@ class YtToZara {
 
   void analysePlaylist() {
     log.info "Download complete, analysing playlist data"
-    createZaraPlaylist()
+    populateZaraPlaylist()
     saveZaraPlayList()
   }
 
@@ -167,9 +174,9 @@ class YtToZara {
     }
   }
 
-  void createZaraPlaylist() {
+  void populateZaraPlaylist() {
     // def zaraTracks = []
-    println "Loading ZaraRadio playlist"
+    log.info "Loading ZaraRadio playlist"
     trackList.each { String trackFileName ->
       // parseYouTubeMetadata( trackFileName )
       if ( !trackFileName?.empty ) {
@@ -188,7 +195,7 @@ class YtToZara {
     log.info "Saving playlist: $playlistTitle"
     zaraPlFileName = playlistTitle?.empty ? timestamp : playlistTitle
     zaraPlFileName += '.lst'
-    ['\\','/',':','"',' '].each {
+    ['\\','/',':',q,' '].each {
       zaraPlFileName = zaraPlFileName.replace(it, '_')
     }
     log.info "Playlist file name: $zaraPlFileName"
@@ -196,7 +203,7 @@ class YtToZara {
     zaraPlayList << String.format('%d%n', zaraTracks.size())
     zaraTracks.each { track ->
       zaraPlayList << track.join('\t')
-      zaraPlayList << '\n'
+      zaraPlayList << System.lineSeparator()
     }
   }
 
@@ -229,19 +236,18 @@ class YtToZara {
     MP3AudioHeader audioHeader = audioFile.getAudioHeader();
     String newLengthStr = audioHeader.getTrackLength();
     Long newlength = newLengthStr.toLong()
-    Long mins = newlength / 60
-    Long secs = newlength % 60
+    final long secsPerMin = 60
+    Long mins = newlength / secsPerMin
+    Long secs = newlength % secsPerMin
     log.debug "Track length: $newLengthStr = $mins mins, $secs secs"
     newlength * 1000
   }
 
   void applyTags( String inFileName, artist, title ) {
-    final String q              = '"'
     final String md             = '-metadata'
     final String nameMd         = "artist=$q$artist$q"
     final String artistMd       = "$md $nameMd $md album_$nameMd"
     final String titleMd        = "$md title=$q$title$q"
-    final String logLevel       = '-loglevel error'
     final String in             = "-i $q$inFileName$q"
     final String outFileName    = outPrefix + cleanFileName( inFileName )
     final String out            = "$q$outFileName$q"
@@ -252,7 +258,7 @@ class YtToZara {
     log.debug "args: $args"
 
     ant.exec (
-      dir               : '.',
+      dir               : currentDir,
       executable        : 'ffmpeg.exe',
       outputproperty    : 'cmdOut',
       errorproperty     : 'cmdError',
@@ -299,7 +305,7 @@ class YtToZara {
 
   void tidyOutputFolder() {
     ant.delete(verbose: false) {
-      fileset( dir: '.' ) {
+      fileset( dir: currentDir ) {
         include( name: '*.bak')
         include( name: '*.json')
       }
