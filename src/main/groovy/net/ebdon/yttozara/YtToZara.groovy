@@ -40,7 +40,6 @@ class YtToZara {
   def ytMetadata
 
   public static main(args) {
-    final String path = args.last()
     YtToZara ytz = new YtToZara()
     if (args.size() == 0 ) {
       ytz.tee()
@@ -49,6 +48,7 @@ class YtToZara {
       ytz.tidyOutputFolder()
     } else {
       if (args.size() in 1..2) {
+        final String path = args.last()
         Installer installer = new Installer(path)
         switch (args.first()) {
           case 'install-ytdlp': {
