@@ -56,6 +56,11 @@ class YtToZara {
             break
           }
 
+          case 'install-ffmpeg': {
+            installer.installFfmpeg()
+            break
+          }
+
           default: {
             ytz.guessMp3Tags( args.first() )
           }

@@ -14,6 +14,17 @@ if not exist "%~dp0bin"\%ytdlp% (
   goto :EOF
 )
 
+if not exist "%~dp0bin"\ffmpeg.exe (
+  echo.
+  echo Installing ffmpeg
+  call "%~dp0\bin\YtToZara.bat" install-ffmpeg "%~dp0bin"
+)
+
+if not exist "%~dp0bin"\ffmpeg.exe (
+  echo ERROR: ffmpeg install failed
+  goto :EOF
+)
+
 set/p url=YouTube playlist URL: 
 if "%url%" neq "" (
   call "%~dp0"YtToZara.cmd "%url%"
