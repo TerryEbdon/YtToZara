@@ -1,7 +1,7 @@
 @echo off
 @setlocal
 set tee="%~dp0\bin\YtToZara.bat"
-set ytcmd=yt-dlp -q
+set ytcmd="%~dp0\bin\yt-dlp" -q
 set audioFormat=--audio-format mp3
 set bitRate=--audio-quality 128K
 set latinCharsOnly=--restrict-filenames
