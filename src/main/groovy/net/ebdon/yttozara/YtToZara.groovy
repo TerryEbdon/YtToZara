@@ -11,7 +11,6 @@ import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.audio.mp3.MP3AudioHeader
 import java.util.logging.Logger
 import java.util.logging.Level
-import java.nio.file.FileSystemException
 import java.nio.file.Paths
 
 /**
@@ -22,25 +21,23 @@ import java.nio.file.Paths
 @groovy.util.logging.Log4j2
 class YtToZara {
   private static final Logger audioTagLogger = Logger.getLogger('org.jaudiotagger')
-  
-  final String outPrefix = 'out_'
-  final String logLevel  = '-loglevel error'
-  final String q         = '"'
-  final String currentDir= '.'
 
+  final String outPrefix  = 'out_'
+  final String logLevel   = '-loglevel error'
+  final String q          = '"'
+  final String currentDir = '.'
 
   final AntBuilder ant      = new AntBuilder()
   def trackList             = []
   def zaraTracks            = []
-  def trackDetails          = []
   String playlistTitle      = ''
   String zaraPlFileName     = ''
-  
+
   final String timestamp
   File jsonFile
-  def ytMetadata
+  Object ytMetadata
 
-  public static main(args) {
+  static void main(String[] args) {
     YtToZara ytz = new YtToZara()
     if (args.size() == 0 ) {
       ytz.tee()
@@ -71,7 +68,7 @@ class YtToZara {
   }
 
   YtToZara() {
-    audioTagLogger.setLevel(Level.SEVERE)
+    audioTagLogger.level = Level.SEVERE
     ant.project.buildListeners[0].messageOutputLevel = Project.MSG_WARN
 
     final String tsPattern = 'yyyy-MM-dd_HH-mm-ss-SSS'
@@ -92,8 +89,8 @@ class YtToZara {
 
   String getBinPath() {
     String jarPath = Paths.get(
-      this.class.getProtectionDomain().
-        getCodeSource().getLocation().toURI()
+      this.class.protectionDomain.
+        codeSource.location.toURI()
     )
 
     "${jarPath}\\..\\..\\bin"
@@ -103,7 +100,7 @@ class YtToZara {
     final String input = "-i $q$mp3FileName$q"
     final String trimmedFileName = "trimmed_$mp3FileName"
 
-    final String trimTrackArgs = 
+    final String trimTrackArgs =
       'areverse,atrim=start=0.2,silenceremove=start_periods=1:start_silence=0.1:start_threshold=0.02:stop_silence=0.5'
     final String ffmpedArgs = "$logLevel -af $q$trimTrackArgs,$trimTrackArgs$q"
     final String argsLine = "-y $input $ffmpedArgs $q$trimmedFileName$q"
@@ -113,7 +110,7 @@ class YtToZara {
       executable        : "${binPath}\\ffmpeg",
       outputproperty    : 'trimCmdOut',
       errorproperty     : 'trimCmdError',
-      resultproperty    : 'trimCmdResult'
+      resultproperty    : 'trimCmdResult',
     ) {
       arg( line: argsLine )
     }
@@ -124,14 +121,14 @@ class YtToZara {
     log.debug "trimAudio execErr = $execErr"
     log.debug "trimAudio execRes = $execRes"
 
-    if ( !execErr.empty ) {
+    if ( execErr.empty ) {
+      ant.delete file: mp3FileName, verbose: false, failonerror: true
+      moveFile trimmedFileName, mp3FileName
+    } else {
       log.error 'Could not trim audio'
       log.error execErr
       log.debug "out: $execOut"
       log.debug "result: $execRes"
-    } else {
-      ant.delete file: mp3FileName, verbose: false, failonerror: true
-      moveFile trimmedFileName, mp3FileName
     }
   }
 
@@ -143,7 +140,7 @@ class YtToZara {
   }
 
   void analysePlaylist() {
-    log.info "Download complete, analysing playlist data"
+    log.info 'Download complete, analysing playlist data'
     populateZaraPlaylist()
     saveZaraPlayList()
   }
@@ -162,9 +159,9 @@ class YtToZara {
     log.debug "YT Album: ${ytMetadata?.album}"
     log.debug "YT Track: ${ytMetadata?.track}"
     log.debug "YT Irish: ${ytIrish()}"
-    def trackDetails = trackFileName.split( ' - ')
+    String[] trackDetails = trackFileName.split( ' - ')
 
-    switch( trackDetails.size() ) {
+    switch ( trackDetails.size() ) {
       case 0:
       case 1:
         log.debug 'Track file name missing expected seperators'
@@ -177,7 +174,7 @@ class YtToZara {
         applyTags( trackFileName, artist, title )
         break
       default:
-        log.debug "Too many separators to decide."
+        log.debug 'Too many separators to decide.'
     }
   }
 
@@ -189,25 +186,32 @@ class YtToZara {
   void tee() {
     final String plFileName   = "pl_${timestamp}.txt"
 
-    log.info "Creating playlist as files download"
+    log.info 'Creating playlist as files download'
     File outFile = new File( plFileName )
-    String line =''
+    String line = ''
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in))
     while ( line != null ) {
       line = br.readLine();
       if (line != null ) {
-        line = line.replaceAll( /\.m4a$/, '.mp3')
-        log.info "Downloading $line"
-        outFile << line
-        outFile << '\n'
-        trackList << line
+        teeTrack( line, outFile )
       }
     }
   }
 
+  void teeTrack( String line, File outFile ) {
+    line = line.replaceAll( /\.m4a$/, '.mp3')
+    log.info "Downloading $line"
+    outFile << line
+    outFile << '\n'
+    addToTrackList( line )
+  }
+
+  void addToTrackList( String line ) {
+    trackList << line
+  }
+
   void populateZaraPlaylist() {
-    // def zaraTracks = []
-    log.info "Loading ZaraRadio playlist"
+    log.info 'Loading ZaraRadio playlist'
     trackList.each { String trackFileName ->
       // parseYouTubeMetadata( trackFileName )
       if ( !trackFileName?.empty ) {
@@ -245,7 +249,7 @@ class YtToZara {
       log.debug "Changed playlistTitle  to $playlistTitle"
       log.debug "Changed zaraPlFileName to $zaraPlFileName"
     } else {
-      log.debug "playlist_title not found"
+      log.debug 'playlist_title not found'
     }
   }
 
@@ -264,8 +268,8 @@ class YtToZara {
   Long duration( File trackFile ) { // Based on SpotToZara.fixMetadata()
     AudioFile audioFile = AudioFileIO.read( trackFile )
 
-    MP3AudioHeader audioHeader = audioFile.getAudioHeader();
-    String newLengthStr = audioHeader.getTrackLength();
+    MP3AudioHeader audioHeader = audioFile.audioHeader
+    String newLengthStr = audioHeader.trackLength
     Long newlength = newLengthStr.toLong()
     final long secsPerMin = 60
     Long mins = newlength / secsPerMin
@@ -274,7 +278,7 @@ class YtToZara {
     newlength * 1000
   }
 
-  void applyTags( String inFileName, artist, title ) {
+  void applyTags( String inFileName, String artist, String title ) {
     final String md             = '-metadata'
     final String nameMd         = "artist=$q$artist$q"
     final String artistMd       = "$md $nameMd $md album_$nameMd"
@@ -293,7 +297,7 @@ class YtToZara {
       executable        : 'ffmpeg.exe',
       outputproperty    : 'cmdOut',
       errorproperty     : 'cmdError',
-      resultproperty    : 'cmdResult'
+      resultproperty    : 'cmdResult',
     ) {
       arg( line: args )
     }
@@ -306,22 +310,22 @@ class YtToZara {
     log.debug "execErr = $execErr"
     log.debug "execRes = $execRes"
 
-    if ( !execErr.empty ) {
-      log.error execErr
-      log.debug "out: $execOut"
-      log.debug "result: $execRes"
-    } else {
-      final String backupName = inFileName[0..-5]+'.bak'
+    if ( execErr.empty ) {
+      final String backupName = inFileName[0..-5] + '.bak'
       try {
         ant.move( file:inFileName,  tofile: backupName, verbose: false, failonerror: true )
         ant.move( file:outFileName, tofile: inFileName, verbose: false, failonerror: true )
       } catch (Exception exe) {
         log.error "applyTags failed to rename file $inFileName"
       }
+    } else {
+      log.error execErr
+      log.debug "out: $execOut"
+      log.debug "result: $execRes"
     }
   }
 
-  final String cleanFileName( inFileName ) {
+  final String cleanFileName( String inFileName ) {
     final String prefix       = /(?i)[\(\[]/
     final String official     = /Official\s+/
     final String hd           = /(HD\s+)?/
@@ -341,5 +345,5 @@ class YtToZara {
         include( name: '*.json')
       }
     }
-  } 
+  }
 }
