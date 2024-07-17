@@ -12,6 +12,7 @@ import org.jaudiotagger.audio.mp3.MP3AudioHeader
 import java.util.logging.Logger
 import java.util.logging.Level
 import java.nio.file.FileSystemException
+import java.nio.file.Paths
 
 /**
  * Convert a youTube playlist into a ZaraRadio playlist.
@@ -89,6 +90,15 @@ class YtToZara {
     }
   }
 
+  String getBinPath() {
+    String jarPath = Paths.get(
+      this.class.getProtectionDomain().
+        getCodeSource().getLocation().toURI()
+    )
+
+    "${jarPath}\\..\\..\\bin"
+  }
+
   void trimAudio( final String mp3FileName ) {
     final String input = "-i $q$mp3FileName$q"
     final String trimmedFileName = "trimmed_$mp3FileName"
@@ -100,7 +110,7 @@ class YtToZara {
     log.debug "argsLine: $argsLine"
     ant.exec (
       dir               : currentDir,
-      executable        : 'ffmpeg',
+      executable        : "${binPath}\\ffmpeg",
       outputproperty    : 'trimCmdOut',
       errorproperty     : 'trimCmdError',
       resultproperty    : 'trimCmdResult'
