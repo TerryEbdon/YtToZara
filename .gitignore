@@ -16,7 +16,7 @@ build
 
 logs
 YtToZara/*
-test
+test*.txt
 
 YtToZara.zip
 *.RPT
