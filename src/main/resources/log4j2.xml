@@ -19,7 +19,7 @@ limitations under the License.
 <Configuration status="WARN">
   <Properties>
 <Property name="logPath">$${env:LOCALAPPDATA}/ebdon.net/YtToZara/logs</Property>
-    <Property name="logLevel">info</Property>
+    <Property name="logLevel">debug</Property>
     <Property name="filePattern">YtToZara-trace-%d{yyyy-MM-dd}.log</Property>
     <Property name="YtToZaraPattern">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %c{1} %msg%n</Property>
     <Property name="consolePattern">%msg%n</Property>
