@@ -11,7 +11,6 @@ import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.audio.mp3.MP3AudioHeader
 import java.util.logging.Logger
 import java.util.logging.Level
-import java.nio.file.Paths
 
 /**
  * Convert a youTube playlist into a ZaraRadio playlist.
@@ -26,12 +25,12 @@ class YtToZara {
   final String logLevel   = '-loglevel error'
   final String q          = '"'
   final String currentDir = '.'
+  final AntBuilder ant    = new AntBuilder()
 
-  final AntBuilder ant      = new AntBuilder()
-  def trackList             = []
-  def zaraTracks            = []
-  String playlistTitle      = ''
-  String zaraPlFileName     = ''
+  List<String> trackList        = []
+  List<List<String>> zaraTracks = []
+  String playlistTitle          = ''
+  String zaraPlFileName         = ''
 
   final String timestamp
   File jsonFile
@@ -40,10 +39,7 @@ class YtToZara {
   static void main(String[] args) {
     YtToZara ytz = new YtToZara()
     if (args.size() == 0 ) {
-      ytz.tee()
-      ytz.analysePlaylist()
-      ytz.trimSilence()
-      ytz.tidyOutputFolder()
+      ytz.convertYtToZara()
     } else {
       if (args.size() in 1..2) {
         final String path = args.last()
@@ -80,63 +76,22 @@ class YtToZara {
     timestamp = playListFileTime.format(fmtTs)
   }
 
+  void convertYtToZara() {
+    tee()
+    analysePlaylist()
+    trimSilence()
+    normalise()
+    tidyOutputFolder()
+  }
+
   void trimSilence() {
-    log.info 'Trimming silence from start and end of tracks.'
-    trackList.each { String trackFileName ->
-      trimAudio( trackFileName )
-    }
+    log.info 'Trimming silence from start and end of tracks'
+    new Ffmpeg().trimSilence( trackList )
   }
 
-  String getBinPath() {
-    String jarPath = Paths.get(
-      this.class.protectionDomain.
-        codeSource.location.toURI()
-    )
-
-    "${jarPath}\\..\\..\\bin"
-  }
-
-  void trimAudio( final String mp3FileName ) {
-    final String input = "-i $q$mp3FileName$q"
-    final String trimmedFileName = "trimmed_$mp3FileName"
-
-    final String trimTrackArgs =
-      'areverse,atrim=start=0.2,silenceremove=start_periods=1:start_silence=0.1:start_threshold=0.02:stop_silence=0.5'
-    final String ffmpedArgs = "$logLevel -af $q$trimTrackArgs,$trimTrackArgs$q"
-    final String argsLine = "-y $input $ffmpedArgs $q$trimmedFileName$q"
-    log.debug "argsLine: $argsLine"
-    ant.exec (
-      dir               : currentDir,
-      executable        : "${binPath}\\ffmpeg",
-      outputproperty    : 'trimCmdOut',
-      errorproperty     : 'trimCmdError',
-      resultproperty    : 'trimCmdResult',
-    ) {
-      arg( line: argsLine )
-    }
-    final int execRes       = ant.project.properties.trimCmdResult.toInteger()
-    final String execOut    = ant.project.properties.trimCmdOut
-    final String execErr    = ant.project.properties.trimCmdError
-    log.debug "trimAudio execOut = $execOut"
-    log.debug "trimAudio execErr = $execErr"
-    log.debug "trimAudio execRes = $execRes"
-
-    if ( execErr.empty ) {
-      ant.delete file: mp3FileName, verbose: false, failonerror: true
-      moveFile trimmedFileName, mp3FileName
-    } else {
-      log.error 'Could not trim audio'
-      log.error execErr
-      log.debug "out: $execOut"
-      log.debug "result: $execRes"
-    }
-  }
-
-  void moveFile( final String fromFileName, final String toFileName ) {
-    ant.move(
-      file: fromFileName, tofile: toFileName,
-      failonerror: true, verbose: false, overwrite: true, force:true
-    )
+  void normalise() {
+    log.info "Normalising ${trackList.size()} tracks"
+    new Ffmpeg().normalise( trackList )
   }
 
   void analysePlaylist() {
@@ -171,7 +126,8 @@ class YtToZara {
         String title  = trackDetails.last()
         log.debug "Artist: $artist"
         log.debug "Title:  $title"
-        applyTags( trackFileName, artist, title )
+
+        new Ffmpeg().applyTags( trackFileName, artist, title )
         break
       default:
         log.debug 'Too many separators to decide.'
@@ -198,12 +154,12 @@ class YtToZara {
     }
   }
 
-  void teeTrack( String line, File outFile ) {
-    line = line.replaceAll( /\.m4a$/, '.mp3')
+  void teeTrack( final String line, final File outFile ) {
+    final String mp3Line = line.replaceAll( /\.m4a$/, '.mp3')
     log.info "Downloading $line"
     outFile << line
     outFile << '\n'
-    addToTrackList( line )
+    addToTrackList( mp3Line )
   }
 
   void addToTrackList( String line ) {
@@ -276,53 +232,6 @@ class YtToZara {
     Long secs = newlength % secsPerMin
     log.debug "Track length: $newLengthStr = $mins mins, $secs secs"
     newlength * 1000
-  }
-
-  void applyTags( String inFileName, String artist, String title ) {
-    final String md             = '-metadata'
-    final String nameMd         = "artist=$q$artist$q"
-    final String artistMd       = "$md $nameMd $md album_$nameMd"
-    final String titleMd        = "$md title=$q$title$q"
-    final String in             = "-i $q$inFileName$q"
-    final String outFileName    = outPrefix + cleanFileName( inFileName )
-    final String out            = "$q$outFileName$q"
-
-    final String args = "$logLevel $in $titleMd $artistMd $out"
-    log.info "Tagging $inFileName"
-    log.debug "New name is $outFileName"
-    log.debug "args: $args"
-
-    ant.exec (
-      dir               : currentDir,
-      executable        : 'ffmpeg.exe',
-      outputproperty    : 'cmdOut',
-      errorproperty     : 'cmdError',
-      resultproperty    : 'cmdResult',
-    ) {
-      arg( line: args )
-    }
-
-    final int execRes       = ant.project.properties.cmdResult.toInteger()
-    final String execOut    = ant.project.properties.cmdOut
-    final String execErr    = ant.project.properties.cmdError
-
-    log.debug "execOut = $execOut"
-    log.debug "execErr = $execErr"
-    log.debug "execRes = $execRes"
-
-    if ( execErr.empty ) {
-      final String backupName = inFileName[0..-5] + '.bak'
-      try {
-        ant.move( file:inFileName,  tofile: backupName, verbose: false, failonerror: true )
-        ant.move( file:outFileName, tofile: inFileName, verbose: false, failonerror: true )
-      } catch (Exception exe) {
-        log.error "applyTags failed to rename file $inFileName"
-      }
-    } else {
-      log.error execErr
-      log.debug "out: $execOut"
-      log.debug "result: $execRes"
-    }
   }
 
   final String cleanFileName( String inFileName ) {
