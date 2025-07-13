@@ -47,6 +47,13 @@ dependencies {
   codenarc('org.apache.groovy:groovy-all:4.0.6') // Required for Java 17
 }
 
+// Apply a specific Java toolchain to ease working on different environments.
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
+  }
+}
+
 application {
   mainClass = 'net.ebdon.yttozara.YtToZara'
 }
