@@ -40,7 +40,7 @@ dependencies {
 
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.1.0")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.1.0")
-  testCompileOnly("junit:junit:4.12")
+  testCompileOnly("junit:junit:4.13.1")
   testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.1.0")
 
   codenarc('org.codenarc:CodeNarc:3.5.0-groovy-4.0')
