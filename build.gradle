@@ -34,8 +34,8 @@ dependencies {
   // This dependency is used by the application.
   implementation 'com.google.guava:guava:32.0.1-jre'
   implementation 'org:jaudiotagger:2.0.3'
-  implementation 'org.apache.logging.log4j:log4j-api:2.12.2'
-  implementation 'org.apache.logging.log4j:log4j-core:2.12.2'
+  implementation 'org.apache.logging.log4j:log4j-api:2.12.4'
+  implementation 'org.apache.logging.log4j:log4j-core:2.12.4'
   implementation 'org.apache.logging.log4j:log4j-jcl:2.4'
 
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.1.0")
