@@ -15,7 +15,7 @@ class Installer {
   static final String github        = 'https://github.com'
 
   static final String ffmpegRepo    = "$github/BtbN/FFmpeg-Builds"
-  static final String ffmpegZip     = 'ffmpeg-master-latest-win64-lgpl.zip'
+  static final String ffmpegZip     = 'ffmpeg-n7.1-latest-win64-lgpl-7.1.zip'
   static final String ffmpegLastest = 'releases/download/latest'
   static final String ffmpegUrl     = "$ffmpegRepo/$ffmpegLastest/$ffmpegZip"
   static final String ffmpegFile    = "$downloadDir$ffmpegZip"
