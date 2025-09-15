@@ -71,7 +71,8 @@ class Installer {
 
     assert new File(installPath).exists()
 
-    log.info  "Downloading $ffmpegZip"
+    log.info   "Downloading $ffmpegZip"
+    log.debug  "Downloading from $ffmpegUrl"
     ant.get (
       src:          ffmpegUrl,
       dest:         downloadDir,
@@ -81,19 +82,22 @@ class Installer {
     if (new File(ffmpegFile).exists()) {
       log.debug 'ffmpeg downloaded'
       log.info  "Unzipping into: $installPath"
-      ant.unzip(
-         src:  ffmpegFile,
-         dest: installPath,
-      ) {
-        patternset {
-          include name: '**/*.exe'
+      try {
+        ant.unzip(
+          src:  ffmpegFile,
+          dest: installPath,
+        ) {
+          patternset {
+            include name: '**/*.exe'
+          }
+          mapper type: 'flatten'
         }
-        mapper type: 'flatten'
+        log.debug 'ffmpeg unzipped'
+      } catch (Exception e) {
+        log.error e.message
       }
-      log.debug 'ffmpeg unzipped'
     } else {
       log.error ffmpegDownloadFail
-      ant.fail  ffmpegDownloadFail
     }
   }
 }
