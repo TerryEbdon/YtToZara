@@ -43,13 +43,15 @@ class FfmpegTest extends GroovyTestCase {
   void testTrimSilenceNoTracks() {
     logger.info 'testTrimSilenceNoTracks start'
     List<String> tracks = []
-
-    antMock.demand.exec(0) { Map args -> } // Must not be called
+    antMock.demand.exec(0) { Map args, Closure closure ->
+      assert args.dir == 'ant.exec must not be called when tracks is empty'
+    }
     projectMock.use {
       antMock.use {
         new Ffmpeg().trimSilence(tracks)
       }
     }
+    assert tracks.empty
     logger.info 'testTrimSilenceNoTracks end'
   }
 
