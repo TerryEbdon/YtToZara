@@ -109,6 +109,7 @@ class FfmpegTest extends GroovyTestCase {
         new Ffmpeg().normalise(tracks)
       }
     }
+    assert tracks.empty
     logger.info 'testNormaliseNoTracks end'
   }
 
