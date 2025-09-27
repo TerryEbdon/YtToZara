@@ -113,6 +113,7 @@ class FfmpegTest extends GroovyTestCase {
     logger.info 'testNormaliseNoTracks end'
   }
 
+  @SuppressWarnings('JUnitTestMethodWithoutAssert')
   void testApplyTags() {
     logger.info 'testApplyTags start'
     final String trackFileName = 'tagMe.wav'
