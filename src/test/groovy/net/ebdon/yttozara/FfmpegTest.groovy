@@ -87,6 +87,7 @@ class FfmpegTest extends GroovyTestCase {
     }
   }
 
+  @SuppressWarnings('JUnitTestMethodWithoutAssert')
   void testTrimAudio() {
     logger.info 'testTrimAudio start'
 
