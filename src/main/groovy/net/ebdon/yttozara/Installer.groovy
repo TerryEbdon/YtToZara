@@ -93,8 +93,8 @@ class Installer {
           mapper type: 'flatten'
         }
         log.debug 'ffmpeg unzipped'
-      } catch (Exception e) {
-        log.error e.message
+      } catch (org.apache.tools.ant.BuildException | java.io.IOException exc) {
+        log.error "Failed to unzip ffmpeg: ${exc.message}"
       }
     } else {
       log.error ffmpegDownloadFail
