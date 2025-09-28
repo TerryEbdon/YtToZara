@@ -21,11 +21,12 @@ import java.util.logging.Level
 class YtToZara {
   private static final Logger audioTagLogger = Logger.getLogger('org.jaudiotagger')
 
-  final String outPrefix  = 'out_'
-  final String logLevel   = '-loglevel error'
-  final String q          = '"'
-  final String currentDir = '.'
-  final AntBuilder ant    = new AntBuilder()
+  final String outPrefix     = 'out_'
+  final String logLevel      = '-loglevel error'
+  final String q             = '"'
+  final String currentDir    = '.'
+  final String trackFileType = 'mp3'
+  final AntBuilder ant       = new AntBuilder()
 
   List<String> trackList        = []
   List<List<String>> zaraTracks = []
@@ -155,7 +156,7 @@ class YtToZara {
   }
 
   void teeTrack( final String line, final File outFile ) {
-    final String mp3Line = line.replaceAll( /\.m4a$/, '.mp3')
+    final String mp3Line = line.replaceAll( /\.m4a$/, ".${trackFileType}")
     log.info "Downloading $line"
     outFile << line
     outFile << '\n'
@@ -210,15 +211,19 @@ class YtToZara {
   }
 
   void parseYouTubeMetadata( final String trackFileName ) {
-    final String jsonFileName = trackFileName.replaceAll( /\.mp3$/, '.info.json')
-    jsonFile = new File( jsonFileName )
+    final String metadataFileName = jsonFileName(trackFileName)
+    jsonFile = new File( metadataFileName )
     if ( jsonFile.exists() ) {
-      log.debug "Parsing JSON: $jsonFileName"
+      log.debug "Parsing JSON: $metadataFileName"
       ytMetadata = new JsonSlurper().parse( jsonFile )
     } else {
-      log.debug "Mising: $jsonFileName"
+      log.debug "Missing: ${jsonFile.absolutePath}"
       ytMetadata = null
     }
+  }
+
+  final String jsonFileName(final String trackFileName) {
+    trackFileName.replaceAll(/\.${trackFileType}$/, '.info.json')
   }
 
   Long duration( File trackFile ) { // Based on SpotToZara.fixMetadata()
@@ -244,7 +249,8 @@ class YtToZara {
     final String suffix       = /[\)\]](?-i)/
 
     final String regex = "$prefix$official$hd$remastered$hd$music$video$suffix"
-    inFileName.replaceAll( regex, '').replaceAll(/\s+\.mp3$/,'.mp3')
+    inFileName.replaceAll( regex, '').
+      replaceAll(/\s+\.${trackFileType}$/,".${trackFileType}")
   }
 
   void tidyOutputFolder() {

@@ -57,4 +57,19 @@ class YtToZaraTest extends GroovyTestCase {
 
     logger.info 'testGuessMp3Tags end'
   }
+
+  void testJsonFileName() {
+    logger.info 'testJsonFileName start'
+    final String expectedFileType = 'info.json'
+    List<List<String>> testFileNames = [
+      ['blah.mp3',"blah.${expectedFileType}"],
+      ['c:\\someDir\\blah.mp3',"c:\\someDir\\blah.${expectedFileType}"],
+    ]
+
+    YtToZara ytToZara = new YtToZara()
+    testFileNames.each { pair ->
+      assert ytToZara.jsonFileName(pair.first()) == pair.last()
+    }
+    logger.info 'testJsonFileName end'
+  }
 }
