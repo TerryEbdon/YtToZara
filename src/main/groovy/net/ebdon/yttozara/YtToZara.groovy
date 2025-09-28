@@ -217,7 +217,7 @@ class YtToZara {
       log.debug "Parsing JSON: $metadataFileName"
       ytMetadata = new JsonSlurper().parse( jsonFile )
     } else {
-      log.debug "Mising: ${jsonFile.absolutePath}"
+      log.debug "Missing: ${jsonFile.absolutePath}"
       ytMetadata = null
     }
   }
