@@ -16,15 +16,15 @@ class Installer {
 
   static final String ffmpegRepo    = "$github/BtbN/FFmpeg-Builds"
   static final String ffmpegZip     = 'ffmpeg-n7.1-latest-win64-lgpl-7.1.zip'
-  static final String ffmpegLastest = 'releases/download/latest'
-  static final String ffmpegUrl     = "$ffmpegRepo/$ffmpegLastest/$ffmpegZip"
+  static final String ffmpegLatest  = 'releases/download/latest'
+  static final String ffmpegUrl     = "$ffmpegRepo/$ffmpegLatest/$ffmpegZip"
   static final String ffmpegFile    = "$downloadDir$ffmpegZip"
 
   static final String ytDlpRepo    = "$github/yt-dlp/yt-dlp"
   static final String ytDlpversion = '2025.09.26'
   static final String ytDlpExe     = 'yt-dlp.exe'
-  static final String ytDlpLastest = "releases/download/${ytDlpversion}"
-  static final String ytDlpUrl     = "$ytDlpRepo/$ytDlpLastest/$ytDlpExe"
+  static final String ytDlpLatest  = "releases/download/${ytDlpversion}"
+  static final String ytDlpUrl     = "$ytDlpRepo/$ytDlpLatest/$ytDlpExe"
   static final String ytDlpFile    = "$downloadDir/$ytDlpExe"
 
   static final AntBuilder ant = new AntBuilder()
