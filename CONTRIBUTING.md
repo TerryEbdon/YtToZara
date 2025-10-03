@@ -11,7 +11,7 @@ transparent as possible, whether it's:
 
 ## Develop with GitHub
 
-This project uses github to host code, to track issues and feature requests, as
+This project uses GitHub to host code, to track issues and feature requests, as
 well as accept pull requests.
 
 ## Use Github Flow
