@@ -27,7 +27,7 @@ We actively welcome your pull requests:
 1. Fork the repo and create your branch from `master`.
 2. If you've added code that should be tested:
    1. Add tests.
-   2. Address issues identified by [Codenary](https://codenarc.org/)
+   2. Address issues identified by [CodeNarc](https://codenarc.org/)
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes.
 5. Issue that pull request!
