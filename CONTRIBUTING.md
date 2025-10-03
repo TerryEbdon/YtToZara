@@ -9,7 +9,7 @@ transparent as possible, whether it's:
 - Proposing new features
 - Becoming a maintainer
 
-## Develop with Github
+## Develop with GitHub
 
 This project uses github to host code, to track issues and feature requests, as
 well as accept pull requests.
