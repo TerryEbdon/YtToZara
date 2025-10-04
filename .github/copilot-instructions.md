@@ -20,4 +20,7 @@ The most-recent stable library versions are preferred.
 
 ## Coding Standards
 
-- Use two spaces for indentation.
+- Use two spaces for indentation
+- English is the preferred language for all comments, issues, commits, pull
+requests and other communications. Spelling and grammar should use British or
+Irish conventions where possible.
