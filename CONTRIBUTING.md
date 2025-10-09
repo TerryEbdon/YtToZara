@@ -61,7 +61,10 @@ People *love* thorough bug reports. I'm not even kidding.
 
 ## Use a Consistent Coding Style
 
-- 2 spaces for indentation rather than tabs
+- Two spaces for indentation rather than tabs
+- English is the preferred language for all comments, issues, commits, pull
+requests and other communications. Spelling and grammar should use British or
+Irish conventions where possible.
 
 ## References
 
