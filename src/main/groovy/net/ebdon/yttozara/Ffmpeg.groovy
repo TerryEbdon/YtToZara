@@ -38,8 +38,9 @@ class Ffmpeg {
     }
   }
 
-  private void silenceTrimmingDisabled() {
+  private Boolean silenceTrimmingDisabled() {
     log.info 'Silence trimming is disabled.'
+    false
   }
 
   String getBinPath() {
@@ -137,13 +138,14 @@ class Ffmpeg {
   * Applies silence removal and reverses the audio to trim both edges.
   */
   Boolean trimAudio( final String mp3FileName ) {
-    if (config.silenceRemove.enabled) {
+    final Map configSilenceRemove = config.silenceRemove
+    if (configSilenceRemove.enabled) {
       log.info "Trimming silence from $mp3FileName"
       final String trimTrackEdgeArgs =
-        "silenceremove=${config.silenceRemove.startPeriods}:" +
-        "start_duration=${config.silenceRemove.startDuration}:" +
-        "start_threshold=${config.silenceRemove.startThreshold}:" +
-        "stop_silence=${config.silenceRemove.stopSilence}:" +
+        "silenceremove=${configSilenceRemove.startPeriods}:" +
+        "start_duration=${configSilenceRemove.startDuration}:" +
+        "start_threshold=${configSilenceRemove.startThreshold}:" +
+        "stop_silence=${configSilenceRemove.stopSilence}:" +
         'detection=peak,' +
         'aformat=dblp,' +
         'areverse'
@@ -154,7 +156,6 @@ class Ffmpeg {
       filterTrack('trimSilence', filter, mp3FileName)
     } else {
       silenceTrimmingDisabled()
-      true
     }
   }
 

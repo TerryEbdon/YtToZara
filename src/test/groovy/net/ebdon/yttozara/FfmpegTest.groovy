@@ -93,7 +93,7 @@ class FfmpegTest extends GroovyTestCase {
     MockFor config =  MockFor(Configuration).tap {
       demand.loadConfig   { }
       demand.logConfig    { }
-      demand.getSrEnabled { false }
+      demand.getSilenceRemove { [enabled: false, ] }
     }
 
     antMock.demand.with {
@@ -107,7 +107,7 @@ class FfmpegTest extends GroovyTestCase {
     config.use {
       projectMock.use {
         antMock.use {
-          assert Ffmpeg().trimAudio(trackFileName)
+          assert Ffmpeg().trimAudio(trackFileName) == false
         }
       }
     }
@@ -121,11 +121,7 @@ class FfmpegTest extends GroovyTestCase {
       demand.with {
         loadConfig          { }
         logConfig           { }
-        getSrEnabled        { true }
-        getSrStartPeriods   { 0 }
-        getSrStartDuration  { 0 }
-        getSrStartThreshold { 0 }
-        getSrStopSilence    { 0 }
+        getSilenceRemove    { [enabled: true, ] }
       }
     }
 

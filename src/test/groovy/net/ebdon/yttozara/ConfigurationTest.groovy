@@ -31,13 +31,15 @@ class ConfigurationTest extends GroovyTestCase {
 
     Map configMap = [
       version: 'v1.0.0',
-      srStartPeriods: 2,
-      srStartSilence: 0.5,
-      srStartThreshold: 1.5,
-      srStopSilence: 2.0,
-      srStopDuration: 5.0,
-      srStartDuration: 0.2,
-      srEnabled: true,
+      silenceRemove: [
+        startPeriods: 2,
+        startSilence: 0.5,
+        startThreshold: 1.5,
+        stopSilence: 2.0,
+        stopDuration: 5.0,
+        startDuration: 0.2,
+        enabled: true,
+      ]
     ]
 
     MockFor configSlurperMock = MockFor(ConfigSlurper).tap {
@@ -60,13 +62,15 @@ class ConfigurationTest extends GroovyTestCase {
     new Configuration().with {
       config = [
         version: 'v1.2.3',
-        srStartPeriods: 2,
-        srStartSilence: 0.1,
-        srStartThreshold: 0.02,
-        srStopSilence: 0.2,
-        srStopDuration: 1.0,
-        srStartDuration: 0.8,
-        srEnabled: true,
+        silenceRemove: [
+          startPeriods   : 1,
+          startSilence   : 0.5,
+          stopSilence    : 0.5,
+          startThreshold : '-26dB',
+          startDuration  : 0,
+          stopDuration   : 1,
+          enabled        : true,
+        ],
       ]
       logConfig()
     }
@@ -85,7 +89,18 @@ class ConfigurationTest extends GroovyTestCase {
 
     MockFor configSlurperMock = MockFor(ConfigSlurper).tap {
       demand.parse { urlOrText ->
-        [version: 'v2.0.0']
+        [
+          version: 'v2.0.0',
+          silenceRemove: [
+            startPeriods   : 1,
+            startSilence   : 0.5,
+            stopSilence    : 0.5,
+            startThreshold : '-26dB',
+            startDuration  : 0,
+            stopDuration   : 1,
+            enabled        : true,
+          ],
+        ]
       }
     }
 
@@ -103,11 +118,36 @@ class ConfigurationTest extends GroovyTestCase {
 
     MockFor resourceManagerMock = MockFor(ClasspathResourceManager)
     resourceManagerMock.demand.getReader { name ->
-      new StringReader("version='v3.0.0'")
+      new StringReader(
+"""
+version = 'v3.0.0'
+silenceRemove {
+  startPeriods   = 1
+  startSilence   = 0.5
+  stopSilence    = 0.5
+  startThreshold = '-26dB'
+  startDuration  = 0
+  stopDuration   = 1
+  enabled        = true
+}
+""")
     }
 
     MockFor configSlurperMock = MockFor(ConfigSlurper)
-    configSlurperMock.demand.parse { text -> [version: 'v3.0.0'] }
+    configSlurperMock.demand.parse { text ->
+      [
+        version: 'v3.0.0',
+        silenceRemove: [
+          startPeriods   : 1,
+          startSilence   : 0.5,
+          stopSilence    : 0.5,
+          startThreshold : '-26dB',
+          startDuration  : 0,
+          stopDuration   : 1,
+          enabled        : true,
+        ],
+      ]
+    }
 
     fileMock.use {
       resourceManagerMock.use {
