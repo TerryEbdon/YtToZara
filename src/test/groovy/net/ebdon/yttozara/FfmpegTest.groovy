@@ -91,9 +91,12 @@ class FfmpegTest extends GroovyTestCase {
     logger.info 'testTrimAudioDisabled start'
 
     MockFor config =  MockFor(Configuration).tap {
-      demand.loadConfig   { }
-      demand.logConfig    { }
-      demand.getSilenceRemove { [enabled: false, ] }
+      demand.with {
+        loadConfig   { }
+        logConfig    { }
+        getSilenceRemove(2) { [enabled: false, ] }
+        getConfigFileName {'corrupt-config.groovy'}
+      }
     }
 
     antMock.demand.with {
@@ -121,7 +124,16 @@ class FfmpegTest extends GroovyTestCase {
       demand.with {
         loadConfig          { }
         logConfig           { }
-        getSilenceRemove    { [enabled: true, ] }
+        getSilenceRemove(2) { [
+          enabled: true,
+          startPeriods: 0,
+          startSilence: 0,
+          stopSilence: 0,
+          startThreshold: 0,
+          startDuration: 0,
+          stopDuration: 0,
+          detection: 0,
+        ] }
       }
     }
 

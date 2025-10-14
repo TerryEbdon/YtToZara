@@ -77,7 +77,7 @@ class Ffmpeg {
   * filter
   *
   * @param Name of audio file to be normalised
-  * @return {@code true} if all successfully normalised, {@code false} otherwise
+  * @return {@code true} if successfully normalised, {@code false} otherwise
   */
   Boolean normaliseAudio( final String mp3FileName ) {
     final String integratedLoudnessTarget = '-13'
@@ -131,24 +131,27 @@ class Ffmpeg {
   }
 
   /**
-  * Trims silence from the start and end of the given audio file using ffmpeg's
-  * silenceremove filter.
-  *
-  * @param mp3FileName the name of the MP3 file to process
-  * Applies silence removal and reverses the audio to trim both edges.
+  Trims silence from the start and end of the given audio file using ffmpeg's
+  <a href="https://ffmpeg.org/ffmpeg-filters.html#silenceremove">silenceremove</a>
+  filter.
+
+  @param mp3FileName the name of the MP3 file to process
+  @return {@code true} if successfully trimmed, {@code false} otherwise.
   */
   Boolean trimAudio( final String mp3FileName ) {
     final Map configSilenceRemove = config.silenceRemove
-    if (configSilenceRemove.enabled) {
+    if (silenceRemoveConfigOk() && configSilenceRemove.enabled) {
       log.info "Trimming silence from $mp3FileName"
       final String trimTrackEdgeArgs =
         "silenceremove=${configSilenceRemove.startPeriods}:" +
         "start_duration=${configSilenceRemove.startDuration}:" +
         "start_threshold=${configSilenceRemove.startThreshold}:" +
         "stop_silence=${configSilenceRemove.stopSilence}:" +
-        'detection=peak,' +
-        'aformat=dblp,' +
+        "detection=${configSilenceRemove.detection}," +
         'areverse'
+        // 'detection=peak,' +
+        // 'aformat=dblp,' +
+        // 'areverse'
 
       log.debug trimTrackEdgeArgs
       final String filter = "$q${trimTrackEdgeArgs},${trimTrackEdgeArgs}$q"
@@ -157,6 +160,41 @@ class Ffmpeg {
     } else {
       silenceTrimmingDisabled()
     }
+  }
+
+  /**
+   * Validates the silence removal configuration.
+   *
+   * Checks that all required keys for silence removal are present in the
+   * configuration. Logs the number of missing keys and an error if the
+   * configuration is corrupt.
+   *
+   * @return {@code true} if all required configuration keys are present,
+   * {@code false} otherwise.
+   */
+  Boolean silenceRemoveConfigOk() {
+    final List<String> requiredConfig = [
+      'enabled',
+      'startPeriods',
+      'startSilence',
+      'stopSilence',
+      'startThreshold',
+      'startDuration',
+      'stopDuration',
+      'detection',
+    ]
+
+
+    final Map configSilenceRemove = config.silenceRemove
+    final int reqKeyFoundCount = requiredConfig.count { key ->
+      configSilenceRemove.containsKey(key)
+    }
+    final int diffCount = requiredConfig.size() - reqKeyFoundCount
+    log.info "silenceRemove config diffCount: $diffCount"
+    if (diffCount != 0) {
+      log.error "Corrupt ${config.configFileName} detected."
+    }
+    diffCount == 0
   }
 
   Boolean applyTags( String mp3FileName, String artist, String title ) {

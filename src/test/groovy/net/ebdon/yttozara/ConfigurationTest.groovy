@@ -39,7 +39,7 @@ class ConfigurationTest extends GroovyTestCase {
         stopDuration: 5.0,
         startDuration: 0.2,
         enabled: true,
-      ]
+      ],
     ]
 
     MockFor configSlurperMock = MockFor(ConfigSlurper).tap {
