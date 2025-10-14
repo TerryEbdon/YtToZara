@@ -29,7 +29,7 @@ class Ffmpeg {
 
   void trimSilence( List<String> trackList ) {
     if (config.silenceRemove.enabled) {
-      log.info 'Trimming silence from start and end of tracks.'
+      log.debug 'Trimming silence from start and end of tracks.'
       trackList.each { String trackFileName ->
         trimAudio( trackFileName )
       }
@@ -141,7 +141,7 @@ class Ffmpeg {
   Boolean trimAudio( final String mp3FileName ) {
     final Map configSilenceRemove = config.silenceRemove
     if (silenceRemoveConfigOk() && configSilenceRemove.enabled) {
-      log.info "Trimming silence from $mp3FileName"
+      log.debug "Trimming silence from $mp3FileName"
       final String trimTrackEdgeArgs =
         "silenceremove=${configSilenceRemove.startPeriods}:" +
         "start_duration=${configSilenceRemove.startDuration}:" +
@@ -184,13 +184,12 @@ class Ffmpeg {
       'detection',
     ]
 
-
     final Map configSilenceRemove = config.silenceRemove
     final int reqKeyFoundCount = requiredConfig.count { key ->
       configSilenceRemove.containsKey(key)
     }
     final int diffCount = requiredConfig.size() - reqKeyFoundCount
-    log.info "silenceRemove config diffCount: $diffCount"
+    log.debug "silenceRemove config diffCount: $diffCount"
     if (diffCount != 0) {
       log.error "Corrupt ${config.configFileName} detected."
     }

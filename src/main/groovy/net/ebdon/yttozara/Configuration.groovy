@@ -50,10 +50,12 @@ class Configuration {
    * Logs the process and fails if no configuration can be loaded.
    */
   private void loadConfig() {
-    log.info "Loading config from $configFileName"
-    log.info 'Current folder is ' + currentDir
-    log.debug 'package:  ' + getClass().packageName
-    log.debug 'Class is: ' + getClass().name
+    log.with {
+      info "Loading config from $configFileName"
+      debug 'Current folder is ' + currentDir
+      debug 'package:  ' + getClass().packageName
+      debug 'Class is: ' + getClass().name
+    }
 
     final File configFile = new File( configFileName )
 
@@ -131,7 +133,7 @@ class Configuration {
    * @return the value of the property, or {@code null} if not found
    */
   Object propertyMissing(String propertyName) {
-    log.info "Lookup '$propertyName' in config"
+    log.trace "Lookup '$propertyName' in config"
     config[propertyName]
   }
 }

@@ -94,8 +94,8 @@ class FfmpegTest extends GroovyTestCase {
       demand.with {
         loadConfig   { }
         logConfig    { }
-        getSilenceRemove(2) { [enabled: false, ] }
-        getConfigFileName {'corrupt-config.groovy'}
+        getSilenceRemove(2) { [enabled: false,] }
+        getConfigFileName { 'corrupt-config.groovy' }
       }
     }
 
@@ -124,16 +124,18 @@ class FfmpegTest extends GroovyTestCase {
       demand.with {
         loadConfig          { }
         logConfig           { }
-        getSilenceRemove(2) { [
-          enabled: true,
-          startPeriods: 0,
-          startSilence: 0,
-          stopSilence: 0,
-          startThreshold: 0,
-          startDuration: 0,
-          stopDuration: 0,
-          detection: 0,
-        ] }
+        getSilenceRemove(2) {
+          [
+            enabled: true,
+            startPeriods: 0,
+            startSilence: 0,
+            stopSilence: 0,
+            startThreshold: 0,
+            startDuration: 0,
+            stopDuration: 0,
+            detection: 0,
+          ]
+        }
       }
     }
 
