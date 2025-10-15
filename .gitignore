@@ -6,7 +6,7 @@
 *.m4a
 *.bak
 *.lst
-*.json
+/*.json
 *.webm
 # Ignore Gradle project-specific cache directory
 .gradle

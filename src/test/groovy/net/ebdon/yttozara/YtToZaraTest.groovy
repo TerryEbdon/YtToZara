@@ -20,10 +20,12 @@ class YtToZaraTest extends GroovyTestCase {
   void testTrimSilence() {
     logger.info 'testTrimSilence start'
     MockFor ffmpegMock = MockFor( Ffmpeg )
-    ffmpegMock.demand.trimSilence { def trackList ->
-      logger.info 'Trimming track list'
-      assert trackList.size() > 0
-      assert trackList.first()[-4..-1] == '.mp3'
+    ffmpegMock.demand.with {
+      trimSilence { def trackList ->
+        logger.info 'Trimming track list'
+        assert trackList.size() > 0
+        assert trackList.first()[-4..-1] == '.mp3'
+      }
     }
 
     ffmpegMock.use {
@@ -41,10 +43,12 @@ class YtToZaraTest extends GroovyTestCase {
     final String trackFileName = "$trackArtist - $trackTitle"
 
     MockFor ffmpegMock = MockFor( Ffmpeg )
-    ffmpegMock.demand.applyTags { String fileName, String artist, String title ->
-      assert fileName == trackFileName
-      assert artist   == trackArtist
-      assert title    == trackTitle
+    ffmpegMock.demand.with {
+      applyTags { String fileName, String artist, String title ->
+        assert fileName == trackFileName
+        assert artist   == trackArtist
+        assert title    == trackTitle
+      }
     }
 
     MockFor fileMock = MockFor(File)

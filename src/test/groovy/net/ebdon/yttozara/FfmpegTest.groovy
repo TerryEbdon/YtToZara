@@ -8,7 +8,7 @@ import org.apache.tools.ant.Project
 /**
  * Test the Ffmpeg class.
  */
-@Newify(MockFor)
+@Newify([Ffmpeg,MockFor])
 @groovy.util.logging.Log4j2('logger')
 class FfmpegTest extends GroovyTestCase {
   private MockFor antMock
@@ -43,9 +43,8 @@ class FfmpegTest extends GroovyTestCase {
   void testTrimSilenceNoTracks() {
     logger.info 'testTrimSilenceNoTracks start'
     List<String> tracks = []
-    antMock.demand.exec(0) { Map args, Closure closure ->
-      assert args.dir == 'ant.exec must not be called when tracks is empty'
-    }
+    antMock.demand.exec(0) { Map args, Closure closure -> }
+      // ant.exec must not be called when tracks is empty
     projectMock.use {
       antMock.use {
         new Ffmpeg().trimSilence(tracks)
@@ -87,16 +86,65 @@ class FfmpegTest extends GroovyTestCase {
     }
   }
 
-  @SuppressWarnings('JUnitTestMethodWithoutAssert')
-  void testTrimAudio() {
-    logger.info 'testTrimAudio start'
+  void testTrimAudioDisabled() {
+    logger.info 'testTrimAudioDisabled start'
 
-    final String trackFileName  = 'wibble.wav'
-    runTrackTask('trimSilence', trackFileName) {
-      new Ffmpeg().trimAudio(trackFileName)
+    MockFor config = MockFor(Configuration).tap {
+      demand.with {
+        loadConfig { }
+        logConfig  { }
+        getSilenceRemove(2) { [enabled: false,] }
+        getConfigFileName { 'corrupt-config.groovy' }
+      }
     }
 
-    logger.info 'testTrimAudio end'
+    antMock.demand.with {
+      exec(0) { Map args, Closure execClosure ->
+        assert args.executable.contains(
+          'ant.exec must not be called when silence trimming disabled')
+      }
+    }
+
+    final String trackFileName  = 'wibble.wav'
+    config.use {
+      projectMock.use {
+        antMock.use {
+          assert Ffmpeg().trimAudio(trackFileName) == false
+        }
+      }
+    }
+    logger.info 'testTrimAudioDisabled end'
+  }
+
+  void testTrimAudioEnabled() {
+    logger.info 'testTrimAudioEnabled start'
+
+    MockFor config = MockFor(Configuration).tap {
+      demand.with {
+        loadConfig          { }
+        logConfig           { }
+        getSilenceRemove(2) {
+          [
+            enabled: true,
+            startPeriods: 0,
+            startSilence: 0,
+            stopSilence: 0,
+            startThreshold: 0,
+            startDuration: 0,
+            stopDuration: 0,
+            detection: 0,
+          ]
+        }
+      }
+    }
+
+    config.use {
+      final String trackFileName  = 'wibble.wav'
+      runTrackTask('trimSilence', trackFileName) {
+        assert Ffmpeg().trimAudio(trackFileName)
+      }
+    }
+    logger.info 'testTrimAudioEnabled end'
   }
 
   void testNormaliseNoTracks() {
@@ -106,20 +154,19 @@ class FfmpegTest extends GroovyTestCase {
     List<String> tracks = []
     projectMock.use {
       antMock.use {
-        new Ffmpeg().normalise(tracks)
+        assert Ffmpeg().normalise(tracks)
       }
     }
     assert tracks.empty
     logger.info 'testNormaliseNoTracks end'
   }
 
-  @SuppressWarnings('JUnitTestMethodWithoutAssert')
   void testApplyTags() {
     logger.info 'testApplyTags start'
     final String trackFileName = 'tagMe.wav'
 
     runTrackTask('applyTags', trackFileName) {
-      new Ffmpeg().applyTags( trackFileName, 'Singy Songster', 'My Song' )
+      assert Ffmpeg().applyTags( trackFileName, 'Singy Songster', 'My Song' )
     }
 
     logger.info 'testApplyTags end'
