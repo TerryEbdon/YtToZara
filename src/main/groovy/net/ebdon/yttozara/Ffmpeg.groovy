@@ -159,7 +159,7 @@ class Ffmpeg {
    * @param configSilenceRemove Map containing silence removal configuration
    * @return Filter string for ffmpeg silenceremove
    */
-  final String silenceRemoveFilter(Map configSilenceRemove) {
+  final String silenceRemoveFilter(Map<String, Object> configSilenceRemove) {
     "silenceremove=${configSilenceRemove.startPeriods}:" +
     "start_duration=${configSilenceRemove.startDuration}:" +
     "start_threshold=${configSilenceRemove.startThreshold}:" +

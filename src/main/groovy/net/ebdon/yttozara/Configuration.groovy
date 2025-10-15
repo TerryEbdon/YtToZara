@@ -19,7 +19,7 @@ import org.codehaus.groovy.tools.groovydoc.ClasspathResourceManager
  */
 @groovy.util.logging.Log4j2
 class Configuration {
-  static final String configFileName = 'config.groovy'
+  final String configFileName = 'config.groovy'
   final String currentDir = '.'
   Map config
 
