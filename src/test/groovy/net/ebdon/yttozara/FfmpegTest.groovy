@@ -8,7 +8,7 @@ import org.apache.tools.ant.Project
 /**
  * Test the Ffmpeg class.
  */
-@Newify([Configuration,Ffmpeg,MockFor])
+@Newify([Ffmpeg,MockFor])
 @groovy.util.logging.Log4j2('logger')
 class FfmpegTest extends GroovyTestCase {
   private MockFor antMock
@@ -43,9 +43,8 @@ class FfmpegTest extends GroovyTestCase {
   void testTrimSilenceNoTracks() {
     logger.info 'testTrimSilenceNoTracks start'
     List<String> tracks = []
-    antMock.demand.exec(0) { Map args, Closure closure ->
-      assert args.dir == 'ant.exec must not be called when tracks is empty'
-    }
+    antMock.demand.exec(0) { Map args, Closure closure -> }
+      // ant.exec must not be called when tracks is empty
     projectMock.use {
       antMock.use {
         new Ffmpeg().trimSilence(tracks)
@@ -90,10 +89,10 @@ class FfmpegTest extends GroovyTestCase {
   void testTrimAudioDisabled() {
     logger.info 'testTrimAudioDisabled start'
 
-    MockFor config =  MockFor(Configuration).tap {
+    MockFor config = MockFor(Configuration).tap {
       demand.with {
-        loadConfig   { }
-        logConfig    { }
+        loadConfig { }
+        logConfig  { }
         getSilenceRemove(2) { [enabled: false,] }
         getConfigFileName { 'corrupt-config.groovy' }
       }
@@ -101,8 +100,8 @@ class FfmpegTest extends GroovyTestCase {
 
     antMock.demand.with {
       exec(0) { Map args, Closure execClosure ->
-        logger.info "Task $taskName in ant.exec()"
-        assert args.executable.contains('Must not be called')
+        assert args.executable.contains(
+          'ant.exec must not be called when silence trimming disabled')
       }
     }
 

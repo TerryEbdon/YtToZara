@@ -142,16 +142,7 @@ class Ffmpeg {
     final Map configSilenceRemove = config.silenceRemove
     if (silenceRemoveConfigOk() && configSilenceRemove.enabled) {
       log.debug "Trimming silence from $mp3FileName"
-      final String trimTrackEdgeArgs =
-        "silenceremove=${configSilenceRemove.startPeriods}:" +
-        "start_duration=${configSilenceRemove.startDuration}:" +
-        "start_threshold=${configSilenceRemove.startThreshold}:" +
-        "stop_silence=${configSilenceRemove.stopSilence}:" +
-        "detection=${configSilenceRemove.detection}," +
-        'areverse'
-        // 'detection=peak,' +
-        // 'aformat=dblp,' +
-        // 'areverse'
+      final String trimTrackEdgeArgs = silenceRemoveFilter(configSilenceRemove)
 
       log.debug trimTrackEdgeArgs
       final String filter = "$q${trimTrackEdgeArgs},${trimTrackEdgeArgs}$q"
@@ -160,6 +151,21 @@ class Ffmpeg {
     } else {
       silenceTrimmingDisabled()
     }
+  }
+
+  /**
+   * Builds the silenceremove filter string from the configuration map.
+   *
+   * @param configSilenceRemove Map containing silence removal configuration
+   * @return Filter string for ffmpeg silenceremove
+   */
+  final String silenceRemoveFilter(Map configSilenceRemove) {
+    "silenceremove=${configSilenceRemove.startPeriods}:" +
+    "start_duration=${configSilenceRemove.startDuration}:" +
+    "start_threshold=${configSilenceRemove.startThreshold}:" +
+    "stop_silence=${configSilenceRemove.stopSilence}:" +
+    "detection=${configSilenceRemove.detection}," +
+    'areverse'
   }
 
   /**

@@ -1,6 +1,5 @@
 /**
 @file
-@author Terry Ebdon
 @brief This file configures the YtToZara app.
 @author Terry Ebdon
 @since v2.1.0

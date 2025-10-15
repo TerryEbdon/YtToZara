@@ -34,7 +34,7 @@ class Configuration {
   void logConfig() {
     log.with {
       debug "version         : ${config.version}"
-      debug 'Silence detecion config:'
+      debug 'Silence detection config:'
       debug "startPeriods  : ${config.silenceRemove.startPeriods}"
       debug "startSilence  : ${config.silenceRemove.startSilence}"
       debug "startThreshold: ${config.silenceRemove.startThreshold}"
