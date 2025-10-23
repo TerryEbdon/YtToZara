@@ -54,12 +54,12 @@ java {
   }
 }
 
-project.version = 'v2.1.0'
+project.version = 'v2.1.1'
 
 jar {
   manifest {
     attributes 'Implementation-Title': project.name,
-      'Implementation-Version': 'v2.1.1'
+      'Implementation-Version': project.version
     }
 }
 
