@@ -2,7 +2,6 @@
 @file
 @brief This file configures the YtToZara app.
 @author Terry Ebdon
-@since v2.1.0
 */
 
 version = 'v2.1.1'
@@ -16,4 +15,9 @@ silenceRemove {
   startDuration  = 0
   stopDuration   = 1
   detection      = 'peak'
+}
+
+normalise {
+  enabled                  = true
+  integratedLoudnessTarget = -13   // LUFS (Loudness Units Full Scale)
 }

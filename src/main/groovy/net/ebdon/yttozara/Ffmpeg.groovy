@@ -65,8 +65,12 @@ class Ffmpeg {
   Boolean normalise( List<String> trackList ) {
     log.info 'Normalising tracks'
     int failedCount = 0
-    trackList.each { String trackFileName ->
-      failedCount += normaliseAudio( trackFileName ) ? 0 : 1
+    if (config.normalise.enabled) {
+      trackList.each { String trackFileName ->
+        failedCount += normaliseAudio( trackFileName ) ? 0 : 1
+      }
+    } else {
+      log.info 'Normalising is disabled.'
     }
     failedCount == 0
   }
@@ -80,9 +84,15 @@ class Ffmpeg {
   * @return {@code true} if successfully normalised, {@code false} otherwise
   */
   Boolean normaliseAudio( final String mp3FileName ) {
-    final String integratedLoudnessTarget = '-13'
-    final String filter = "loudnorm=I=$integratedLoudnessTarget"
-    filterTrack( 'loudnorm', filter, mp3FileName)
+    final Map configNormalise = config.normalise
+    if (configNormalise.enabled) {
+      final String loudNormFilterArg = configNormalise.integratedLoudnessTarget
+      final String filter = "loudnorm=I=$loudNormFilterArg"
+      filterTrack( 'loudnorm', filter, mp3FileName)
+    } else {
+      log.info "normalisation disabled for $mp3FileName"
+      true
+    }
   }
 
   Boolean filterTrack( String filterName, String filter, String mp3FileName ) {
