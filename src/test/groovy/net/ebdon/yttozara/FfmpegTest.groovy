@@ -172,7 +172,7 @@ class FfmpegTest extends GroovyTestCase {
    * behaviour via the helper runNormaliseAudioEnabled(false).
    */
   void testNormaliseAudioDisabled() {
-    logger.info 'testNormaliseAudioEnabled start'
+    logger.info 'testNormaliseAudioDisabled start'
     assert runNormaliseAudioEnabled(false)
     logger.info 'testNormaliseAudioDisabled end'
   }
