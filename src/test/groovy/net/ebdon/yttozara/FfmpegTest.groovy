@@ -31,7 +31,10 @@ class FfmpegTest extends GroovyTestCase {
       ]
     }
 
-    antMock.demand.getProject { new Project() }
+    antMock.demand.getProject {
+      logger.debug 'getProject() called'
+      new Project()
+    }
   }
 
   void testBinPath() {
@@ -54,16 +57,17 @@ class FfmpegTest extends GroovyTestCase {
     logger.info 'testTrimSilenceNoTracks end'
   }
 
-  private void runTrackTask( String taskName, String trackFileName, Closure trackClosure) {
+  private Boolean runTrackTask( String taskName, String trackFileName, Closure trackClosure) {
+    Boolean result = false
     final String tempFileName = "${taskName}_$trackFileName"
     antMock.demand.with {
-      exec { Map args, Closure execClosure ->
+      exec(0..1) { Map args, Closure execClosure ->
         logger.info "Task $taskName in ant.exec()"
         assert args.executable.contains('ffmpeg')
       }
-      getProject { new Project() }
+      getProject(0..1) { new Project() }
 
-      move { Map args ->
+      move(0..1) { Map args ->
         logger.info "move() called with ${args}"
         assert args.file == tempFileName
         assert args.tofile == trackFileName
@@ -71,7 +75,7 @@ class FfmpegTest extends GroovyTestCase {
       }
     }
 
-    projectMock.demand.getProperties {
+    projectMock.demand.getProperties(0..1) {
       [
         'cmdOut'   : 'blah',
         'cmdError' : '',
@@ -81,9 +85,10 @@ class FfmpegTest extends GroovyTestCase {
 
     projectMock.use {
       antMock.use {
-        trackClosure.call()
+        result = trackClosure.call()
       }
     }
+    result
   }
 
   void testTrimAudioDisabled() {
@@ -91,8 +96,8 @@ class FfmpegTest extends GroovyTestCase {
 
     MockFor config = MockFor(Configuration).tap {
       demand.with {
-        loadConfig { }
-        logConfig  { }
+        loadConfig  { logger.debug 'Mock Configuration loaded' }
+        logConfig   { logger.debug 'Mock Configuration logged' }
         getSilenceRemove(2) { [enabled: false,] }
         getConfigFileName { 'corrupt-config.groovy' }
       }
@@ -121,8 +126,8 @@ class FfmpegTest extends GroovyTestCase {
 
     MockFor config = MockFor(Configuration).tap {
       demand.with {
-        loadConfig          { }
-        logConfig           { }
+        loadConfig  { logger.debug 'Mock Configuration loaded' }
+        logConfig   { logger.debug 'Mock Configuration logged' }
         getSilenceRemove(2) {
           [
             enabled: true,
@@ -145,6 +150,63 @@ class FfmpegTest extends GroovyTestCase {
       }
     }
     logger.info 'testTrimAudioEnabled end'
+  }
+
+  /**
+   * Test that normalisation is performed when enabled by configuration.
+   *
+   * Sets up a mock Configuration with normalisation enabled then delegates to
+   * the helper runNormaliseAudioEnabled(true) which arranges Ant/Project mocks
+   * and invokes Ffmpeg.normaliseAudio.
+   */
+  void testNormaliseAudioEnabled() {
+    logger.info 'testNormaliseAudioEnabled start'
+    assert runNormaliseAudioEnabled(true)
+    logger.info 'testNormaliseAudioEnabled end'
+  }
+
+  /**
+   * Test that normalisation behaves correctly when disabled by configuration.
+   *
+   * Sets up a mock Configuration with normalisation disabled and verifies the
+   * behaviour via the helper runNormaliseAudioEnabled(false).
+   */
+  void testNormaliseAudioDisabled() {
+    logger.info 'testNormaliseAudioDisabled start'
+    assert runNormaliseAudioEnabled(false)
+    logger.info 'testNormaliseAudioDisabled end'
+  }
+
+  /**
+   * Helper that prepares a mocked Configuration and runs the loudnorm task.
+   *
+   * @param runEnabled  whether normalisation should be enabled in the mock
+   *                    config
+   * @return Boolean    result returned by runTrackTask which invokes
+   *                    Ffmpeg.normaliseAudio
+   */
+  private Boolean runNormaliseAudioEnabled( Boolean runEnabled ) {
+    Boolean result = false
+    MockFor config = MockFor(Configuration).tap {
+      demand.with {
+        loadConfig  { logger.debug 'Mock Configuration loaded' }
+        logConfig   { logger.debug 'Mock Configuration logged' }
+        getNormalise {
+          [
+            enabled: runEnabled,
+            integratedLoudnessTarget: -1,
+          ]
+        }
+      }
+    }
+
+    final String trackFileName = 'normaliseEnabled.wav'
+    config.use {
+      result = runTrackTask('loudnorm', trackFileName) {
+        Ffmpeg().normaliseAudio(trackFileName)
+      }
+    }
+    result
   }
 
   void testNormaliseNoTracks() {
