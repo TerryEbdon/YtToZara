@@ -14,6 +14,19 @@ if not exist "%~dp0bin"\%ytdlp% (
   goto :EOF
 )
 
+
+if not exist "%~dp0bin"\deno.exe (
+  echo.
+  echo Installing Deno
+  winget install --id=DenoLand.Deno
+  call "%~dp0\bin\YtToZara.bat" install-deno "%~dp0bin"
+)
+
+if not exist "%~dp0bin"\deno.exe (
+  echo ERROR: deno install failed
+  goto :EOF
+)
+
 if not exist "%~dp0bin"\ffmpeg.exe (
   echo.
   echo Installing ffmpeg

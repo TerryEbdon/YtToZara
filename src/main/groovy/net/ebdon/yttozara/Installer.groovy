@@ -27,9 +27,18 @@ class Installer {
   static final String ytDlpUrl     = "$ytDlpRepo/$ytDlpLatest/$ytDlpExe"
   static final String ytDlpFile    = "$downloadDir/$ytDlpExe"
 
+  static final String denoRepo    = "$github/denoland/deno"
+  static final String denoVersion = 'v2.5.6'
+  static final String denoLatest  = "releases/download/${denoVersion}"
+  static final String denoZip     = 'deno-x86_64-pc-windows-msvc.zip'
+  static final String denoUrl     = "$denoRepo/$denoLatest/$denoZip"
+  static final String denoFile    = "$downloadDir$denoZip"
+
   static final AntBuilder ant = new AntBuilder()
 
   final String installPath
+  final String exeRecursiveDescent = '**/*.exe'
+  final String mapperType = 'flatten'
 
   Installer(final String installPath) {
     this.installPath = installPath
@@ -88,9 +97,9 @@ class Installer {
           dest: installPath,
         ) {
           patternset {
-            include name: '**/*.exe'
+            include name: exeRecursiveDescent
           }
-          mapper type: 'flatten'
+          mapper type: mapperType
         }
         log.debug 'ffmpeg unzipped'
       } catch (org.apache.tools.ant.BuildException | java.io.IOException exc) {
@@ -98,6 +107,41 @@ class Installer {
       }
     } else {
       log.error ffmpegDownloadFail
+    }
+  }
+  void installDeno() {
+    log.trace "Exists before: ${new File(denoFile).exists()}"
+    log.trace "Path exists: ${new File(installPath).exists()}"
+
+    assert new File(installPath).exists()
+
+    log.info   "Downloading $denoZip"
+    log.debug  "Downloading from $denoUrl"
+    ant.get (
+      src:          denoUrl,
+      dest:         downloadDir,
+      verbose:      false,
+      usetimestamp: true,
+    )
+    if (new File(denoFile).exists()) {
+      log.debug 'Deno downloaded'
+      log.info  "Unzipping into: $installPath"
+      try {
+        ant.unzip(
+          src:  denoFile,
+          dest: installPath,
+        ) {
+          patternset {
+            include name: exeRecursiveDescent
+          }
+          mapper type: mapperType
+        }
+        log.debug 'Deno unzipped'
+      } catch (org.apache.tools.ant.BuildException | java.io.IOException exc) {
+        log.error "Failed to unzip Deno: ${exc.message}"
+      }
+    } else {
+      log.error denoDownloadFail
     }
   }
 }
