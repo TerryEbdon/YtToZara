@@ -28,7 +28,7 @@ YtToZara depends on Java 17, which must be on the Windows path.
 ### Other software
 
 Earlier versions of YtToZara required [yt-dlp], [ffmpeg and ffprobe] to be on
-the Windows path. path. Starting with v2.0.0 that's no longer a requirement, as
+the Windows path. Starting with v2.0.0 that's no longer a requirement, as
 YtToZara will download its own copies of these apps.
 
 ## Installing YtToZara
