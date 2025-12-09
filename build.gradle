@@ -43,7 +43,7 @@ dependencies {
   testCompileOnly("junit:junit:4.13.2")
   testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.14.0")
 
-  codenarc('org.codenarc:CodeNarc:3.6.0-groovy-4.0')
+  codenarc('org.codenarc:CodeNarc:3.7.0-groovy-4.0')
   codenarc('org.apache.groovy:groovy-all:4.0.29') // Required for Java 17
 }
 
