@@ -1,11 +1,16 @@
 {
   "cSpell.words": [
     "codehaus",
+    "codenarc",
     "errorproperty",
     "failonerror",
     "ffmpeg",
     "ffprobe",
+    "gradlew",
     "groovydoc",
+    "jacoco",
+    "jaudiotagger",
+    "jthink",
     "loglevel",
     "loudnorm",
     "LUFS",
