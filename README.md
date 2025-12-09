@@ -1,3 +1,5 @@
+[![Dependency review](https://github.com/TerryEbdon/YtToZara/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/TerryEbdon/YtToZara/actions/workflows/dependency-review.yml)
+
 # YtToZara
 
 YtToZara is a command line tool that converts a YouTube playlist to a ZaraRadio
