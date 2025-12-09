@@ -3,6 +3,8 @@
     "codehaus",
     "errorproperty",
     "failonerror",
+    "ffmpeg",
+    "ffprobe",
     "groovydoc",
     "loglevel",
     "loudnorm",
@@ -12,6 +14,7 @@
     "resultproperty",
     "silenceremove",
     "tofile",
+    "winget",
     "yttozara"
   ]
 }
