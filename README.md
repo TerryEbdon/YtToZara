@@ -45,7 +45,7 @@ YtToZara will download its own copies of these apps.
 ## Installing YtToZara
 
 1. Make sure that Java 17 is on the path.
-2. Make sure that Deno is on the path. 
+2. Make sure that Deno is on the path.
 3. Download the [latest release] (scroll down to `Assets` to find the ZIP file.)
 4. Unzip the downloaded file into a folder.
 5. Add the `YtToZara` folder to the user path.
