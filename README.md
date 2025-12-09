@@ -53,7 +53,7 @@ YtToZara will download its own copies of these apps.
 ## Usage
 
 1. Use the command `YtToZaraUI` from a command prompt.
-2. YtToZara will download it's dependencies, if required.
+2. YtToZara will download its dependencies, if required.
 3. When prompted, enter the URL of a YouTube playlist.
 
 **Note:**
