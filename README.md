@@ -25,6 +25,17 @@ converted to underscores.
 
 YtToZara depends on Java 17, which must be on the Windows path.
 
+### A recent version of Deno
+
+Version 2.0.0, or later, of Deno is required. The latest version is
+recommended.
+
+Install Deno with the following command:
+
+```Batchfile
+winget install --id=DenoLand.Deno
+```
+
 ### Other software
 
 Earlier versions of YtToZara required [yt-dlp], [ffmpeg and ffprobe] to be on
@@ -34,9 +45,10 @@ YtToZara will download its own copies of these apps.
 ## Installing YtToZara
 
 1. Make sure that Java 17 is on the path.
-2. Download the [latest release] (scroll down to `Assets` to find the ZIP file.)
-3. Unzip the downloaded file into a folder.
-4. Add the `YtToZara` folder to the user path.
+2. Make sure that Deno is on the path.
+3. Download the [latest release] (scroll down to `Assets` to find the ZIP file.)
+4. Unzip the downloaded file into a folder.
+5. Add the `YtToZara` folder to the user path.
 
 ## Usage
 
