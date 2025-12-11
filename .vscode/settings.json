@@ -6,6 +6,7 @@
     "failonerror",
     "ffmpeg",
     "ffprobe",
+    "gmetrics",
     "gradlew",
     "groovydoc",
     "jacoco",
