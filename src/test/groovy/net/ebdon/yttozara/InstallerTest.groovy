@@ -64,7 +64,7 @@ class InstallerTest extends AntTestBase {
     antMock.demand.copy { Map args ->
       assert args.file == Installer.ytDlpFile
       assert args.todir == installDir.absolutePath || args.todir == installDir
-      assert args.flatten == true || args.flatten == null
+      assert args.flatten == true
     }
 
     projectMock.use {
