@@ -14,7 +14,7 @@ import org.apache.tools.ant.BuildException
  *  <li> constructor message output level
  *  <li> successful download and copy/unzip flows
  *  <li> failure handling when downloads are missing or unzip fails
- * </ul<
+ * </ul>
  * Each test creates a temporary install directory in setUp() and cleans it up
  * in tearDown(). The tests assert behaviour rather than performing real
  * network or zip operations.
@@ -58,14 +58,13 @@ class InstallerTest extends AntTestBase {
     antMock.demand.get { Map args ->
       assert args.src == Installer.ytDlpUrl
       assert args.dest == Installer.downloadDir
-      assert args.usetimestamp == true || args.usetimestamp == null
-        || args.usetimestamp == true
+      assert args.usetimestamp == true
     }
 
     antMock.demand.copy { Map args ->
       assert args.file == Installer.ytDlpFile
       assert args.todir == installDir.absolutePath || args.todir == installDir
-      assert args.flatten == true || args.flatten == null
+      assert args.flatten == true
     }
 
     projectMock.use {
@@ -148,6 +147,6 @@ class InstallerTest extends AntTestBase {
         new Installer(installDir.absolutePath).installFfmpeg()
       }
     }
-  logger.debug '< testInstallFfmpegHandlesUnzipExceptionGracefully'
+    logger.debug '< testInstallFfmpegHandlesUnzipExceptionGracefully'
   }
 }
