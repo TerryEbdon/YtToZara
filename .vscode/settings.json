@@ -14,11 +14,14 @@
     "loglevel",
     "loudnorm",
     "LUFS",
+    "mkdirs",
     "Newify",
     "outputproperty",
     "resultproperty",
     "silenceremove",
+    "todir",
     "tofile",
+    "usetimestamp",
     "winget",
     "yttozara"
   ]

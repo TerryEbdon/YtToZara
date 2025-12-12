@@ -24,3 +24,4 @@ The most-recent stable library versions are preferred.
 - English is the preferred language for all comments, issues, commits, pull
 requests and other communications. Spelling and grammar should use British or
 Irish conventions where possible.
+- Unit tests must be derived from groovy.test.GroovyTestCase.
