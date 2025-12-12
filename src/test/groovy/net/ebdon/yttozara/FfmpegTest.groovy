@@ -1,8 +1,6 @@
 package net.ebdon.yttozara
 
-import groovy.test.GroovyTestCase
 import groovy.mock.interceptor.MockFor
-import groovy.ant.AntBuilder
 import org.apache.tools.ant.Project
 
 /**
@@ -10,32 +8,7 @@ import org.apache.tools.ant.Project
  */
 @Newify([Ffmpeg,MockFor])
 @groovy.util.logging.Log4j2('logger')
-class FfmpegTest extends GroovyTestCase {
-  private MockFor antMock
-  private MockFor projectMock
-
-  @Override
-  void setUp() {
-    super.setUp()
-    antMock     = MockFor(AntBuilder)
-    projectMock = MockFor(Project)
-
-    constructorDemands()
-  }
-
-  private void constructorDemands() {
-    projectMock.demand.getMSG_WARN { 1 }    // Used in Ffmpeg constructor
-    projectMock.demand.getBuildListeners {  // Used in Ffmpeg constructor
-      [
-        [messageOutputLevel:4,],
-      ]
-    }
-
-    antMock.demand.getProject {
-      logger.debug 'getProject() called'
-      new Project()
-    }
-  }
+class FfmpegTest extends AntTestBase {
 
   void testBinPath() {
     logger.info 'testBinPath start'

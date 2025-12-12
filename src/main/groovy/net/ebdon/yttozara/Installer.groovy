@@ -29,12 +29,13 @@ class Installer {
   static final String ytDlpUrl     = "$ytDlpRepo/$ytDlpLatest/$ytDlpExe"
   static final String ytDlpFile    = "$downloadDir/$ytDlpExe"
 
-  static final AntBuilder ant = new AntBuilder()
+  final AntBuilder ant
 
   final String installPath
 
   Installer(final String installPath) {
     this.installPath = installPath
+    ant = new AntBuilder()
     ant.project.buildListeners[0].messageOutputLevel = Project.MSG_WARN
   }
 
