@@ -147,6 +147,6 @@ class InstallerTest extends AntTestBase {
         new Installer(installDir.absolutePath).installFfmpeg()
       }
     }
-  logger.debug '< testInstallFfmpegHandlesUnzipExceptionGracefully'
+    logger.debug '< testInstallFfmpegHandlesUnzipExceptionGracefully'
   }
 }
