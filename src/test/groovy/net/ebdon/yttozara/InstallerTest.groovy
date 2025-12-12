@@ -59,7 +59,6 @@ class InstallerTest extends AntTestBase {
       assert args.src == Installer.ytDlpUrl
       assert args.dest == Installer.downloadDir
       assert args.usetimestamp == true || args.usetimestamp == null
-        || args.usetimestamp == true
     }
 
     antMock.demand.copy { Map args ->
