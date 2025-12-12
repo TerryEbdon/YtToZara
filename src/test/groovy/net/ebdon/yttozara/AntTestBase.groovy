@@ -34,7 +34,7 @@ import groovy.test.GroovyTestCase
  * Notes:
  * <ul>
  *  <li>setUp() initialises antMock and projectMock and calls
-        constructorDemands()
+ *      constructorDemands()
  *  <li>constructorDemands() sets expectations for Project.getMSG_WARN,
  *      Project.getBuildListeners and AntBuilder.getProject so tests that
  *      construct objects depending on those calls do not hit the real
