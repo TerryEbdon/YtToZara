@@ -14,7 +14,7 @@ import org.apache.tools.ant.BuildException
  *  <li> constructor message output level
  *  <li> successful download and copy/unzip flows
  *  <li> failure handling when downloads are missing or unzip fails
- * </ul<
+ * </ul>
  * Each test creates a temporary install directory in setUp() and cleans it up
  * in tearDown(). The tests assert behaviour rather than performing real
  * network or zip operations.
