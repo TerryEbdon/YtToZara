@@ -75,7 +75,6 @@ class InstallerTest extends AntTestBase {
     logger.debug '< testInstallYtDlpCopiesWhenDownloaded'
   }
 
-  @groovy.test.NotYetImplemented
   void testInstallYtDlpFailsWhenNotDownloaded() {
     logger.debug '> testInstallYtDlpFailsWhenNotDownloaded'
     // Ensure no downloaded yt-dlp file exists
