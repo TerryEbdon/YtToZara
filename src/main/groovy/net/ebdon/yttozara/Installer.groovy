@@ -23,9 +23,9 @@ class Installer {
   static final String ffmpegFile    = "$downloadDir$ffmpegZip"
 
   static final String ytDlpRepo    = "$github/yt-dlp/yt-dlp"
-  static final String ytDlpversion = '2025.11.12'
+  static final String ytDlpVersion = '2025.11.12'
   static final String ytDlpExe     = 'yt-dlp.exe'
-  static final String ytDlpLatest  = "releases/download/${ytDlpversion}"
+  static final String ytDlpLatest  = "releases/download/${ytDlpVersion}"
   static final String ytDlpUrl     = "$ytDlpRepo/$ytDlpLatest/$ytDlpExe"
   static final String ytDlpFile    = "$downloadDir/$ytDlpExe"
 
