@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'org.apache.groovy:groovy-all:5.0.2'
+  implementation 'org.apache.groovy:groovy-all:5.0.3'
   // This dependency is used by the application.
   implementation 'com.google.guava:guava:33.5.0-jre'
   implementation 'net.jthink:jaudiotagger:3.0.1'
