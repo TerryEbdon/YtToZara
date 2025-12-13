@@ -17,6 +17,7 @@
     "mkdirs",
     "Newify",
     "outputproperty",
+    "patternset",
     "resultproperty",
     "silenceremove",
     "todir",
