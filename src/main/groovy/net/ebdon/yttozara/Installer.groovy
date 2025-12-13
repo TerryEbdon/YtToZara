@@ -9,7 +9,7 @@ import org.apache.tools.ant.Project
 @groovy.util.logging.Log4j2
 class Installer {
   static final String ffmpegDownloadFail = 'ffmpeg download failed.'
-  static final String tDlpDownloadFail = 'yt-dlp download failed.'
+  static final String ytDlpDownloadFail = 'yt-dlp download failed.'
 
   static final String downloadDir   = System.getProperty('java.io.tmpdir')
   static final String github        = 'https://github.com'
