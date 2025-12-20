@@ -7,6 +7,8 @@ plugins {
   id 'codenarc'
 }
 
+distTar.enabled = false
+
 codenarcMain {
   configFile = file("$rootDir/config/codenarc/codenarc.groovy")
   ignoreFailures = true
