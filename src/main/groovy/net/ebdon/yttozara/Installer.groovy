@@ -14,20 +14,19 @@ class Installer {
   static final String downloadDir   = System.getProperty('java.io.tmpdir')
   static final String github        = 'https://github.com'
 
-  static final String ffmpegRepo    = "$github/BtbN/FFmpeg-Builds"
-  static final String ffVer         = '8.0'
-  static final String ffArchLic     = 'latest-win64-lgpl'
-  static final String ffmpegZip     = "ffmpeg-n${ffVer}-$ffArchLic-${ffVer}.zip"
-  static final String ffmpegLatest  = 'releases/download/latest'
-  static final String ffmpegUrl     = "$ffmpegRepo/$ffmpegLatest/$ffmpegZip"
-  static final String ffmpegFile    = "$downloadDir$ffmpegZip"
-
   static final String ytDlpRepo    = "$github/yt-dlp/yt-dlp"
   static final String ytDlpVersion = '2025.12.08'
   static final String ytDlpExe     = 'yt-dlp.exe'
   static final String ytDlpLatest  = "releases/download/${ytDlpVersion}"
   static final String ytDlpUrl     = "$ytDlpRepo/$ytDlpLatest/$ytDlpExe"
   static final String ytDlpFile    = "$downloadDir/$ytDlpExe"
+
+  static String ffmpegUrl =
+'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-12-15-12-56/ffmpeg-n8.0.1-28-g9c93070155-win64-lgpl-8.0.zip'
+
+  static String ffmpegChecksumAlgorithm = 'SHA-256'
+  static String ffmpegExpectedSha =
+    '7323c8cff8e439e952302d661fc267514d2c405f30047e8fccf7f6862f33e218'
 
   final AntBuilder ant
 
@@ -37,6 +36,14 @@ class Installer {
     this.installPath = installPath
     ant = new AntBuilder()
     ant.project.buildListeners[0].messageOutputLevel = Project.MSG_WARN
+  }
+
+  static String getFfmpegZipFileName() {
+    ffmpegUrl.split('/').last()
+  }
+
+  static String getFfmpegZipPath() {
+    "$downloadDir$ffmpegZipFileName"
   }
 
   void installYtDlp() {
@@ -68,13 +75,10 @@ class Installer {
     }
   }
 
-  void installFfmpeg() {
-    log.trace "Exists before: ${new File(ffmpegFile).exists()}"
-    log.trace "Path exists: ${new File(installPath).exists()}"
-
+  void downloadFfmpeg() {
     assert new File(installPath).exists()
 
-    log.info   "Downloading $ffmpegZip"
+    log.info   "Downloading $ffmpegZipFileName"
     log.debug  "Downloading from $ffmpegUrl"
     ant.get (
       src:          ffmpegUrl,
@@ -82,24 +86,50 @@ class Installer {
       verbose:      false,
       usetimestamp: true,
     )
-    if (new File(ffmpegFile).exists()) {
-      log.debug 'ffmpeg downloaded'
-      log.info  "Unzipping into: $installPath"
-      try {
-        ant.unzip(
-          src:  ffmpegFile,
-          dest: installPath,
-        ) {
-          patternset {
-            include name: '**/*.exe'
-          }
-          mapper type: 'flatten'
+    log.info "Downloaded $ffmpegZipFileName"
+  }
+
+  void unzipFfmpeg() {
+    log.debug 'ffmpeg downloaded'
+    log.info  "Unzipping into: $installPath"
+    try {
+      ant.unzip(
+        src:  ffmpegZipPath,
+        dest: installPath,
+      ) {
+        patternset {
+          include name: '**/*.exe'
         }
-        log.debug 'ffmpeg unzipped'
-      } catch (org.apache.tools.ant.BuildException | java.io.IOException exc) {
-        log.error "Failed to unzip ffmpeg: ${exc.message}"
+        mapper type: 'flatten'
       }
+      log.debug 'ffmpeg unzipped'
+    } catch (org.apache.tools.ant.BuildException | java.io.IOException exc) {
+      log.error "Failed to unzip ffmpeg: ${exc.message}"
+    }
+  }
+
+  Boolean getFfmpegGoodZipFile() {
+    File zipFile = new File(ffmpegZipPath)
+    zipFile.exists() && ffmpegChecksumIsGood
+  }
+
+  Boolean getFfmpegChecksumIsGood() {
+    ant.checksum(
+      file: ffmpegZipPath,
+      algorithm: ffmpegChecksumAlgorithm,
+      property: ffmpegExpectedSha,
+      verifyProperty: 'ffmpegIsGood'
+    )
+    ant.project.properties.ffmpegIsGood == 'true'
+  }
+
+  void installFfmpeg() {
+    downloadFfmpeg()
+
+    if (new File(ffmpegZipPath).exists()) {
+      unzipFfmpeg()
     } else {
+      log.info "No such file: $ffmpegZipPath"
       log.error ffmpegDownloadFail
     }
   }
