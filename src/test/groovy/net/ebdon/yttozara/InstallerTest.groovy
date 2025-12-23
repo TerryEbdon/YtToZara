@@ -1,5 +1,6 @@
 package net.ebdon.yttozara
 
+import groovy.mock.interceptor.MockFor
 import groovy.ant.AntBuilder
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.BuildException
@@ -19,9 +20,11 @@ import org.apache.tools.ant.BuildException
  * in tearDown(). The tests assert behaviour rather than performing real
  * network or zip operations.
  */
+@Newify(MockFor)
 @groovy.util.logging.Log4j2('logger')
 class InstallerTest extends AntTestBase {
   private File    installDir
+  private String  installDirAbsolutePath
 
   @Override
   void setUp() {
@@ -29,6 +32,7 @@ class InstallerTest extends AntTestBase {
     installDir = new File(System.getProperty('java.io.tmpdir'),
       "yttozara_test_inst_${System.nanoTime()}")
     installDir.mkdirs()
+    installDirAbsolutePath = installDir.absolutePath
   }
 
   @Override
@@ -101,51 +105,190 @@ class InstallerTest extends AntTestBase {
   void testInstallFfmpegUnzipsWhenDownloaded() {
     logger.debug '> testInstallFfmpegUnzipsWhenDownloaded'
 
-    File ffZip = new File(Installer.ffmpegFile) // simulated ffmpeg zip file
-    ffZip.parentFile?.mkdirs()
-    ffZip.createNewFile()
-    ffZip.deleteOnExit()
-
     antMock.demand.get { Map args ->
       assert args.src  == Installer.ffmpegUrl
       assert args.dest == Installer.downloadDir
     }
 
     antMock.demand.unzip { Map args, Closure closure ->
-      assert args.src == Installer.ffmpegFile
-      assert args.dest == installDir.absolutePath || args.dest == installDir
-      // Closure is not invoked
-      assert closure != null
+      assert args.src == Installer.ffmpegZipPath
+      assert args.dest == installDirAbsolutePath
+      assert closure != null // Closure is not invoked
     }
 
-    projectMock.use {
-      antMock.use {
-        new Installer(installDir.absolutePath).installFfmpeg()
+    fileMock.use {
+      projectMock.use {
+        antMock.use {
+          new Installer(installDirAbsolutePath).installFfmpeg()
+        }
       }
     }
     logger.debug '< testInstallFfmpegUnzipsWhenDownloaded'
   }
 
+  private static MockFor getFileMock() {
+    MockFor(File).tap {
+      demand.exists(2) {
+        logger.debug 'Returning true for File.exists()'
+        true
+      }
+    }
+  }
+
   void testInstallFfmpegHandlesUnzipExceptionGracefully() {
     logger.debug '> testInstallFfmpegHandlesUnzipExceptionGracefully'
-    File ffZip = new File(Installer.ffmpegFile)
-    ffZip.parentFile?.mkdirs()
-    ffZip.createNewFile()
-    ffZip.deleteOnExit()
 
     antMock.demand.with {
       get { Map args -> assert args.src == Installer.ffmpegUrl }
-      antMock.demand.unzip { Map args, Closure closure ->
+      unzip { Map args, Closure closure ->
         throw new BuildException('simulated unzip failure')
       }
     }
 
-    projectMock.use {
-      antMock.use {
-        // installFfmpeg catches BuildException/IOException and should not throw
-        new Installer(installDir.absolutePath).installFfmpeg()
+    fileMock.use {
+      projectMock.use {
+        antMock.use {
+          // installFfmpeg catches BuildException/IOException & should not throw
+          new Installer(installDirAbsolutePath).installFfmpeg()
+        }
       }
     }
     logger.debug '< testInstallFfmpegHandlesUnzipExceptionGracefully'
+  }
+
+ void testFfmpegChecksumIsGoodReturnsTrueWhenAntSetsPropertyTrue() {
+    logger.debug '> testFfmpegChecksumIsGoodReturnsTrueWhenAntSetsPropertyTrue'
+
+    antMock.demand.checksum { Map args ->
+      assert args.file == Installer.ffmpegZipPath
+      assert args.algorithm == 'SHA-256'
+      assert args.property == Installer.ffmpegExpectedSha
+      assert args.verifyProperty == 'ffmpegIsGood'
+    }
+
+    demandChecksumIsGood()
+
+    projectMock.use {
+      antMock.use {
+        Installer installer = new Installer(installDirAbsolutePath)
+        assert installer.ffmpegChecksumIsGood
+      }
+    }
+
+    logger.debug '< testFfmpegChecksumIsGoodReturnsTrueWhenAntSetsPropertyTrue'
+  }
+
+  void testFfmpegChecksumIsGoodReturnsFalseWhenAntPropertyNotTrue() {
+    logger.debug '> testFfmpegChecksumIsGoodReturnsFalseWhenAntPropertyNotTrue'
+
+    antMock.demand.checksum { Map args ->
+      // simulate checksum running but verification failing
+    }
+
+  demandChecksumIsBad()
+
+    projectMock.use {
+      antMock.use {
+        Installer installer = new Installer(installDirAbsolutePath)
+        assert installer.ffmpegChecksumIsGood == false
+      }
+    }
+
+    logger.debug '< testFfmpegChecksumIsGoodReturnsFalseWhenAntPropertyNotTrue'
+  }
+
+  void testFfmpegGoodZipFileReturnsTrueWhenFileExistsAndChecksumGood() {
+    logger.debug(
+      '> testFfmpegGoodZipFileReturnsTrueWhenFileExistsAndChecksumGood'
+    )
+    // File.exists() will be called once by getFfmpegGoodZipFile
+    MockFor(File).tap {
+      demand.exists { ->
+        logger.debug 'Mocked File.exists() -> true'
+        true
+      }
+    }.use {
+      antMock.demand.checksum { Map args ->
+      }
+
+      demandChecksumIsGood()
+
+      projectMock.use {
+        antMock.use {
+          Installer installer = new Installer(installDirAbsolutePath)
+          assert installer.ffmpegGoodZipFile
+        }
+      }
+    }
+
+    logger.debug(
+      '< testFfmpegGoodZipFileReturnsTrueWhenFileExistsAndChecksumGood'
+    )
+  }
+
+  void testFfmpegGoodZipFileReturnsFalseWhenFileMissing() {
+    logger.debug '> testFfmpegGoodZipFileReturnsFalseWhenFileMissing'
+
+    // File.exists() returns false; checksum should not be invoked.
+    MockFor(File).tap {
+      demand.exists { ->
+        logger.debug 'Mocked File.exists() -> false'
+        false
+      }
+    }.use {
+      // Do not expect ant.checksum to be called; ensure test fails if it is.
+      antMock.demand.checksum(0) { }
+
+      projectMock.use {
+        antMock.use {
+          Installer installer = new Installer(installDirAbsolutePath)
+          assert installer.ffmpegGoodZipFile == false
+        }
+      }
+    }
+
+    logger.debug '< testFfmpegGoodZipFileReturnsFalseWhenFileMissing'
+  }
+
+  void testFfmpegChecksumInvokesAntChecksumWithCorrectArguments() {
+    logger.debug '> testFfmpegChecksumInvokesAntChecksumWithCorrectArguments'
+
+    Boolean checksumCalled = false
+    antMock.demand.checksum { Map args ->
+      checksumCalled = true
+      assert args.file == Installer.ffmpegZipPath
+      assert args.algorithm == 'SHA-256'
+      assert args.property == Installer.ffmpegExpectedSha
+      assert args.verifyProperty == 'ffmpegIsGood'
+    }
+
+    demandChecksumIsGood()
+
+    projectMock.use {
+      antMock.use {
+        Installer installer = new Installer(installDirAbsolutePath)
+        boolean result = installer.ffmpegChecksumIsGood
+        assert checksumCalled
+        assert result
+      }
+    }
+
+    logger.debug '< testFfmpegChecksumInvokesAntChecksumWithCorrectArguments'
+  }
+
+  private void demandChecksumIsGood() {
+    demandChecksum true
+  }
+
+  private void demandChecksumIsBad() {
+    demandChecksum false
+  }
+
+  private void demandChecksum( Boolean expectedStatus ) {
+    demandGetProject()
+
+    projectMock.demand.getProperties {
+      ['ffmpegIsGood': expectedStatus ? 'true' : 'false', ]
+    }
   }
 }

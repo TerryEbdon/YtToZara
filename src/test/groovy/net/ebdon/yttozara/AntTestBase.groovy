@@ -64,6 +64,10 @@ abstract class AntTestBase extends GroovyTestCase {
       ]
     }
 
+    demandGetProject()
+  }
+
+  void demandGetProject() {
     antMock.demand.getProject {
       logger.trace 'getProject() called'
       new Project()
