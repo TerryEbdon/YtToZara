@@ -185,7 +185,7 @@ class InstallerTest extends AntTestBase {
       // simulate checksum running but verification failing
     }
 
-  demandChecksumIsBad()
+    demandChecksumIsBad()
 
     projectMock.use {
       antMock.use {
@@ -284,7 +284,7 @@ class InstallerTest extends AntTestBase {
     demandChecksum false
   }
 
-  private void demandChecksum( Boolean expectedStatus ) {
+  private void demandChecksum(Boolean expectedStatus) {
     demandGetProject()
 
     projectMock.demand.getProperties {
