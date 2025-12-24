@@ -133,7 +133,7 @@ class InstallerTest extends AntTestBase {
     logger.info "> demandUnzip >${withException}<"
     antMock.demand.unzip { Map args, Closure closure ->
       assertFfmpegUnzipArgs args, closure
-      if (withException == false) {
+      if (withException) {
         throw new BuildException('simulated unzip failure')
       }
     }
