@@ -14,10 +14,10 @@ import org.apache.tools.ant.BuildException
  * <ul>
  *  <li> constructor message output level
  *  <li> successful download and copy/unzip flows
- *  <li> failure handling when downloads are missing or unzip fails
+ *  <li> failure handling when downloads are missing, checksums don't match
+ *       or unzip fails
  * </ul>
- * Each test creates a temporary install directory in setUp() and cleans it up
- * in tearDown(). The tests assert behaviour rather than performing real
+ * The tests assert behaviour rather than performing real
  * network or zip operations.
  */
 @Newify(MockFor)
@@ -25,20 +25,15 @@ import org.apache.tools.ant.BuildException
 class InstallerTest extends AntTestBase {
   private File    installDir
   private String  installDirAbsolutePath
+  private MockFor fileMock
 
   @Override
   void setUp() {
     super.setUp()
-    installDir = new File(System.getProperty('java.io.tmpdir'),
-      "yttozara_test_inst_${System.nanoTime()}")
-    installDir.mkdirs()
+    final String root = File.listRoots().first()
+    installDir = new File("${root}the-app-dir/bin")
     installDirAbsolutePath = installDir.absolutePath
-  }
-
-  @Override
-  void tearDown() {
-    installDir.deleteDir()
-    super.tearDown()
+    fileMock = MockFor(File)
   }
 
   void testConstructorSetsMessageOutputLevel() {
@@ -53,11 +48,6 @@ class InstallerTest extends AntTestBase {
 
   void testInstallYtDlpCopiesWhenDownloaded() {
     logger.debug '> testInstallYtDlpCopiesWhenDownloaded'
-    // Ensure a simulated downloaded yt-dlp exists
-    File downloaded = new File(Installer.ytDlpFile)
-    downloaded.parentFile?.mkdirs()
-    downloaded.createNewFile()
-    downloaded.deleteOnExit()
 
     antMock.demand.get { Map args ->
       assert args.src == Installer.ytDlpUrl
@@ -67,13 +57,16 @@ class InstallerTest extends AntTestBase {
 
     antMock.demand.copy { Map args ->
       assert args.file == Installer.ytDlpFile
-      assert args.todir == installDir.absolutePath || args.todir == installDir
+      assert args.todir == installDirAbsolutePath
       assert args.flatten == true
     }
+    fileMock.demand.exists(2) { true }
 
-    projectMock.use {
-      antMock.use {
-        new Installer(installDir.absolutePath).installYtDlp()
+    fileMock.use {
+      projectMock.use {
+        antMock.use {
+          new Installer(installDirAbsolutePath).installYtDlp()
+        }
       }
     }
     logger.debug '< testInstallYtDlpCopiesWhenDownloaded'
@@ -81,40 +74,34 @@ class InstallerTest extends AntTestBase {
 
   void testInstallYtDlpFailsWhenNotDownloaded() {
     logger.debug '> testInstallYtDlpFailsWhenNotDownloaded'
-    // Ensure no downloaded yt-dlp file exists
-    File downloaded = new File(Installer.ytDlpFile)
-    if (downloaded.exists()) { downloaded.delete() }
 
     antMock.demand.get { Map args -> /* allow call */ }
     antMock.demand.fail { String msg ->
       throw new BuildException(msg)
     }
+    fileMock.demand.exists { true }
+    fileMock.demand.exists { false }
 
-    projectMock.use {
-      antMock.use {
-        assert installDir?.exists()
-        assert installDir.absolutePath != null
-        shouldFail(BuildException) {
-          new Installer(installDir.absolutePath).installYtDlp()
+    fileMock.use {
+      projectMock.use {
+        antMock.use {
+          assert installDirAbsolutePath != null
+          shouldFail(BuildException) {
+            new Installer(installDirAbsolutePath).installYtDlp()
+          }
         }
       }
     }
     logger.debug '< testInstallYtDlpFailsWhenNotDownloaded'
   }
 
+  @SuppressWarnings('JUnitTestMethodWithoutAssert')
   void testInstallFfmpegUnzipsWhenDownloaded() {
     logger.debug '> testInstallFfmpegUnzipsWhenDownloaded'
 
-    antMock.demand.get { Map args ->
-      assert args.src  == Installer.ffmpegUrl
-      assert args.dest == Installer.downloadDir
-    }
-
-    antMock.demand.unzip { Map args, Closure closure ->
-      assert args.src == Installer.ffmpegZipPath
-      assert args.dest == installDirAbsolutePath
-      assert closure != null // Closure is not invoked
-    }
+    preUnzipDemands()
+    demandUnzip()
+    fileMock.demand.exists(2) { true }
 
     fileMock.use {
       projectMock.use {
@@ -126,24 +113,46 @@ class InstallerTest extends AntTestBase {
     logger.debug '< testInstallFfmpegUnzipsWhenDownloaded'
   }
 
-  private static MockFor getFileMock() {
-    MockFor(File).tap {
-      demand.exists(2) {
-        logger.debug 'Returning true for File.exists()'
-        true
-      }
+  private void demandFfmpegGetUrl() {
+    antMock.demand.get { Map args ->
+      assert args.src == Installer.ffmpegUrl
+      assert args.verbose == false
+      assert args.usetimestamp == true
     }
   }
 
-  void testInstallFfmpegHandlesUnzipExceptionGracefully() {
-    logger.debug '> testInstallFfmpegHandlesUnzipExceptionGracefully'
+  private void assertFfmpegUnzipArgs( Map args, Closure closure ) {
+    logger.info '> assertFfmpegUnzipArgs'
+    assert args.src == Installer.ffmpegZipPath
+    assert args.dest == installDirAbsolutePath
+    assert closure != null // Closure is not invoked
+    logger.info '< assertFfmpegUnzipArgs'
+  }
 
-    antMock.demand.with {
-      get { Map args -> assert args.src == Installer.ffmpegUrl }
-      unzip { Map args, Closure closure ->
+  private void demandUnzip(Boolean withException = false) {
+    logger.info "> demandUnzip >${withException}<"
+    antMock.demand.unzip { Map args, Closure closure ->
+      assertFfmpegUnzipArgs args, closure
+      if (withException) {
         throw new BuildException('simulated unzip failure')
       }
     }
+    logger.info '< demandUnzip'
+  }
+
+  private void preUnzipDemands() {
+    demandFfmpegGetUrl()
+    demandFfmpegChecksum()
+    demandChecksumIsGood()
+  }
+
+  @SuppressWarnings('JUnitTestMethodWithoutAssert')
+  void testInstallFfmpegHandlesUnzipExceptionGracefully() {
+    logger.debug '> testInstallFfmpegHandlesUnzipExceptionGracefully'
+
+    preUnzipDemands()
+    demandUnzip true
+    fileMock.demand.exists(2) { true }
 
     fileMock.use {
       projectMock.use {
@@ -159,13 +168,7 @@ class InstallerTest extends AntTestBase {
  void testFfmpegChecksumIsGoodReturnsTrueWhenAntSetsPropertyTrue() {
     logger.debug '> testFfmpegChecksumIsGoodReturnsTrueWhenAntSetsPropertyTrue'
 
-    antMock.demand.checksum { Map args ->
-      assert args.file == Installer.ffmpegZipPath
-      assert args.algorithm == 'SHA-256'
-      assert args.property == Installer.ffmpegExpectedSha
-      assert args.verifyProperty == 'ffmpegIsGood'
-    }
-
+    demandFfmpegChecksum()
     demandChecksumIsGood()
 
     projectMock.use {
@@ -178,13 +181,19 @@ class InstallerTest extends AntTestBase {
     logger.debug '< testFfmpegChecksumIsGoodReturnsTrueWhenAntSetsPropertyTrue'
   }
 
+  private void demandFfmpegChecksum() {
+    antMock.demand.checksum { Map args ->
+      assert args.file == Installer.ffmpegZipPath
+      assert args.algorithm == 'SHA-256'
+      assert args.property == Installer.ffmpegExpectedSha
+      assert args.verifyProperty == 'ffmpegIsGood'
+    }
+  }
+
   void testFfmpegChecksumIsGoodReturnsFalseWhenAntPropertyNotTrue() {
     logger.debug '> testFfmpegChecksumIsGoodReturnsFalseWhenAntPropertyNotTrue'
 
-    antMock.demand.checksum { Map args ->
-      // simulate checksum running but verification failing
-    }
-
+    demandFfmpegChecksum()
     demandChecksumIsBad()
 
     projectMock.use {
@@ -208,9 +217,7 @@ class InstallerTest extends AntTestBase {
         true
       }
     }.use {
-      antMock.demand.checksum { Map args ->
-      }
-
+      demandFfmpegChecksum()
       demandChecksumIsGood()
 
       projectMock.use {
@@ -253,23 +260,13 @@ class InstallerTest extends AntTestBase {
   void testFfmpegChecksumInvokesAntChecksumWithCorrectArguments() {
     logger.debug '> testFfmpegChecksumInvokesAntChecksumWithCorrectArguments'
 
-    Boolean checksumCalled = false
-    antMock.demand.checksum { Map args ->
-      checksumCalled = true
-      assert args.file == Installer.ffmpegZipPath
-      assert args.algorithm == 'SHA-256'
-      assert args.property == Installer.ffmpegExpectedSha
-      assert args.verifyProperty == 'ffmpegIsGood'
-    }
-
+    demandFfmpegChecksum()
     demandChecksumIsGood()
 
     projectMock.use {
       antMock.use {
         Installer installer = new Installer(installDirAbsolutePath)
-        boolean result = installer.ffmpegChecksumIsGood
-        assert checksumCalled
-        assert result
+        assert installer.ffmpegChecksumIsGood
       }
     }
 
