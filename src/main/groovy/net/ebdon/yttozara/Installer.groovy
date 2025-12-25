@@ -19,7 +19,7 @@ class Installer {
     'https://github.com/yt-dlp/yt-dlp/releases/download/2025.12.08/yt-dlp.exe'
 
   @SuppressWarnings('LineLength')
-  static String ffmpegUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-12-15-12-56/ffmpeg-n8.0.1-28-g9c93070155-win64-lgpl-8.0.zip'
+  static final String ffmpegUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-12-15-12-56/ffmpeg-n8.0.1-28-g9c93070155-win64-lgpl-8.0.zip'
 
   static String ffmpegChecksumAlgorithm = 'SHA-256'
   static String ffmpegExpectedSha =
