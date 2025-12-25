@@ -12,17 +12,14 @@ class Installer {
   static final String ytDlpDownloadFail  = 'yt-dlp download failed.'
 
   static final String downloadDir  = System.getProperty('java.io.tmpdir')
-  static final String github       = 'https://github.com'
-
-  static final String ytDlpRepo    = "$github/yt-dlp/yt-dlp"
-  static final String ytDlpVersion = '2025.12.08'
   static final String ytDlpExe     = 'yt-dlp.exe'
-  static final String ytDlpLatest  = "releases/download/${ytDlpVersion}"
-  static final String ytDlpUrl     = "$ytDlpRepo/$ytDlpLatest/$ytDlpExe"
   static final String ytDlpFile    = "$downloadDir/$ytDlpExe"
 
+  static final String ytDlpUrl =
+    'https://github.com/yt-dlp/yt-dlp/releases/download/2025.12.08/yt-dlp.exe'
+
   @SuppressWarnings('LineLength')
-  static String ffmpegUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-12-15-12-56/ffmpeg-n8.0.1-28-g9c93070155-win64-lgpl-8.0.zip'
+  static final String ffmpegUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-12-15-12-56/ffmpeg-n8.0.1-28-g9c93070155-win64-lgpl-8.0.zip'
 
   static String ffmpegChecksumAlgorithm = 'SHA-256'
   static String ffmpegExpectedSha =
