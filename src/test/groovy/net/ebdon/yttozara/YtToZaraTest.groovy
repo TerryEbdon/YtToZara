@@ -10,6 +10,20 @@ import groovy.mock.interceptor.MockFor
 @groovy.util.logging.Log4j2('logger')
 class YtToZaraTest extends GroovyTestCase {
 
+  @SuppressWarnings('JUnitTestMethodWithoutAssert')
+  void testMainInstallFfmpeg() {
+    logger.info '> testMainInstallFfmpeg'
+    MockFor installerMock = MockFor(FfmpegInstaller).tap {
+      demand.install { logger.info 'Fielded call to installFfmpeg.install()' }
+    }
+
+    installerMock.use {
+      String args = 'install-ffmpeg'
+      YtToZara.main( args )
+    }
+    logger.info '< testMainInstallFfmpeg'
+  }
+
   void testAddToTrackList() {
     String trackLine = 'boo.mp3'
     YtToZara ytToZara = new YtToZara()
