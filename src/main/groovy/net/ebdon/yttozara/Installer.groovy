@@ -48,8 +48,8 @@ class Installer {
    * {@code getFfmpegZipFileName()}). This is always correct on Microsoft
    * Windows, which is the only supported platform/environment.
    *
-   * Note: Do **NOT** normalise the path via {@link java.io.File}, as that would
-   * break the unit test. Fixing that would require excessive complexity 
+   * Note: Do <b>NOT</b> normalise the path via {@link java.io.File}, as that
+   * breaks the unit test. Fixing that would require excessive complexity.
    *
    * @return String  absolute path to the ffmpeg zip file in the download dir
    */
@@ -95,13 +95,16 @@ class Installer {
       verbose:      false,
       usetimestamp: true,
     )
-    log.info "Downloaded $ffmpegZipFileName"
+    log.info "Downloaded  $ffmpegZipFileName"
   }
 
   Boolean unzipFfmpeg() {
-    log.debug 'ffmpeg downloaded'
     log.info  "Unzipping into: $installPath"
+
+    final long startMillis = System.currentTimeMillis()
+
     Boolean unzipped = false
+
     try {
       ant.unzip(
         src:  ffmpegZipPath,
@@ -116,8 +119,34 @@ class Installer {
       log.info 'ffmpeg distribution unzipped'
     } catch (org.apache.tools.ant.BuildException | java.io.IOException exc) {
       log.error "Failed to unzip ffmpeg: ${exc.message}"
+    } finally {
+        log.info "Unzip operation time: ${duration(startMillis)}"
     }
     unzipped
+  }
+
+  /**
+   * Format an elapsed duration from the given start time.
+   *
+   * <p>
+   * Calculates the elapsed time (current time minus {@code startMillis}) and
+   * formats it as minutes, seconds and milliseconds suitable for logging.
+   *
+   * @param startMillis  the start time in milliseconds (as returned by
+   *                     System.currentTimeMillis())
+   * @return String      human readable duration, e.g. "1m 23s 456ms"
+   */
+  final String duration(final long startMillis) {
+    final long elapsed = System.currentTimeMillis() - startMillis
+
+    final long millisPerSecond = 1000L
+    final long millisPerMinute = 60L * millisPerSecond
+    final long minutes         = elapsed / millisPerMinute
+    final long remainder       = elapsed % millisPerMinute
+    final long seconds         = remainder / millisPerSecond
+    final long milliseconds    = remainder % millisPerSecond
+
+    "${minutes}m ${seconds}s ${milliseconds}ms"
   }
 
   Boolean getFfmpegGoodZipFile() {
@@ -136,8 +165,8 @@ class Installer {
    * project property.
    * <p>
    * Note: This is the correct way to compare the calculated and expected
-   * checksums, as documented in the 
-   * <a href="https://ant.apache.org/manual/Tasks/checksum.html">Ant manual</a>
+   * checksums, as documented in the
+   * <a href="https://ant.apache.org/manual/Tasks/checksum.html">Ant manual</a>.
    *
    * @return Boolean  true when Ant indicates the file checksum matches the
    *                  expected value, false otherwise
@@ -168,7 +197,7 @@ class Installer {
     }
   }
   void installFfmpeg() {
-    log.info 'Downloading and installing ffmpeg'
+    log.debug 'Downloading and installing ffmpeg'
     downloadFfmpeg()
     if (ffmpegGoodZipFile) {
       unzipFfmpegAndLogStatus()
