@@ -6,6 +6,7 @@
     "failonerror",
     "ffmpeg",
     "ffprobe",
+    "fileset",
     "gradlew",
     "groovydoc",
     "jacoco",
@@ -25,6 +26,7 @@
     "tofile",
     "usetimestamp",
     "winget",
+    "ytdlp",
     "yttozara"
   ]
 }
