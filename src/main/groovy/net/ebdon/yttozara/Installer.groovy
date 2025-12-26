@@ -54,7 +54,7 @@ class Installer {
    * @return String  absolute path to the ffmpeg zip file in the download dir
    */
   static String getFfmpegZipPath() {
-    "$downloadDir$ffmpegZipFileName" // downloadDir contain the separator
+    "$downloadDir$ffmpegZipFileName" // downloadDir contains the separator
   }
 
   void installYtDlp() {
