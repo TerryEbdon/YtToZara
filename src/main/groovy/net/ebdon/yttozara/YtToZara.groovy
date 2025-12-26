@@ -110,16 +110,16 @@ class YtToZara {
     }
     log.debug "Track No.        ${ytMetadata?.playlist_index}"
     // log.info ytMetadata?.description
-    log.debug "YT Arist: ${ytMetadata?.artist}"
-    log.debug "YT Album: ${ytMetadata?.album}"
-    log.debug "YT Track: ${ytMetadata?.track}"
-    log.debug "YT Irish: ${ytIrish()}"
+    log.debug "YT Artist: ${ytMetadata?.artist}"
+    log.debug "YT Album:  ${ytMetadata?.album}"
+    log.debug "YT Track:  ${ytMetadata?.track}"
+    log.debug "YT Irish:  ${ytIrish()}"
     String[] trackDetails = trackFileName.split( ' - ')
 
     switch ( trackDetails.size() ) {
       case 0:
       case 1:
-        log.debug 'Track file name missing expected seperators'
+        log.debug 'Track file name missing expected separators'
         break
       case 2:
         String artist = trackDetails.first()
@@ -230,12 +230,12 @@ class YtToZara {
 
     MP3AudioHeader audioHeader = audioFile.audioHeader
     String newLengthStr = audioHeader.trackLength
-    Long newlength = newLengthStr.toLong()
+    Long newLength = newLengthStr.toLong()
     final long secsPerMin = 60
-    Long mins = newlength / secsPerMin
-    Long secs = newlength % secsPerMin
+    Long mins = newLength / secsPerMin
+    Long secs = newLength % secsPerMin
     log.debug "Track length: $newLengthStr = $mins mins, $secs secs"
-    newlength * 1000
+    newLength * 1000
   }
 
   final String cleanFileName( String inFileName ) {
