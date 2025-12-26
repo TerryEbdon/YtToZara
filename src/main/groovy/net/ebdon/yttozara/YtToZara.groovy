@@ -44,15 +44,14 @@ class YtToZara {
     } else {
       if (args.size() in 1..2) {
         final String path = args.last()
-        Installer installer = new Installer(path)
         switch (args.first()) {
           case 'install-ytdlp': {
-            installer.installYtDlp()
+            new Installer(path).installYtDlp()
             break
           }
 
           case 'install-ffmpeg': {
-            installer.installFfmpeg()
+            new FfmpegInstaller(path).install()
             break
           }
 

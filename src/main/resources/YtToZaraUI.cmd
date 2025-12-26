@@ -16,7 +16,7 @@ if not exist "%~dp0bin"\%ytdlp% (
 
 if not exist "%~dp0bin"\ffmpeg.exe (
   echo.
-  echo Installing ffmpeg
+  echo Loading ffmpeg installer
   call "%~dp0\bin\YtToZara.bat" install-ffmpeg "%~dp0bin"
 )
 

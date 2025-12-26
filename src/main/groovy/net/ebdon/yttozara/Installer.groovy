@@ -39,8 +39,22 @@ class Installer {
     ffmpegUrl.split('/').last()
   }
 
+  /**
+   * Return the full path to the downloaded ffmpeg zip file.
+   *
+   * <p>
+   * The returned value is formed by combining the configured download
+   * directory and the ffmpeg zip file name (as returned by
+   * {@code getFfmpegZipFileName()}). This is always correct on Microsoft
+   * Windows, which is the only supported platform/environment.
+   *
+   * Note: Do **NOT** normalise the path via {@link java.io.File}, as that would
+   * break the unit test. Fixing that would require excessive complexity 
+   *
+   * @return String  absolute path to the ffmpeg zip file in the download dir
+   */
   static String getFfmpegZipPath() {
-    "$downloadDir$ffmpegZipFileName"
+    "$downloadDir$ffmpegZipFileName" // downloadDir contain the separator
   }
 
   void installYtDlp() {
@@ -111,13 +125,32 @@ class Installer {
     zipFile.exists() && ffmpegChecksumIsGood
   }
 
+  /**
+   * Verify the ffmpeg zip file checksum using Ant's checksum task.
+   *
+   * <p>
+   * This method invokes the Ant checksum task against the file returned by
+   * {@code ffmpegZipPath} using the algorithm configured in
+   * {@code ffmpegChecksumAlgorithm}. The Ant task verifies the
+   * checksum and save the verification result in the {@code ffmpegIsGood}
+   * project property.
+   * <p>
+   * Note: This is the correct way to compare the calculated and expected
+   * checksums, as documented in the 
+   * <a href="https://ant.apache.org/manual/Tasks/checksum.html">Ant manual</a>
+   *
+   * @return Boolean  true when Ant indicates the file checksum matches the
+   *                  expected value, false otherwise
+   */
   Boolean getFfmpegChecksumIsGood() {
     ant.checksum(
       file: ffmpegZipPath,
       algorithm: ffmpegChecksumAlgorithm,
-      property: ffmpegExpectedSha,
-      verifyProperty: 'ffmpegIsGood'
+      property: ffmpegExpectedSha,        // Will be compared to calc'd checksum
+      verifyProperty: 'ffmpegIsGood'      // Ant returns 'true' or 'false'
     )
+
+    @SuppressWarnings('DuplicateStringLiteral')
     Boolean fileMatchesChecksum = ant.project.properties.ffmpegIsGood == 'true'
     if (fileMatchesChecksum) {
       log.info 'ffmpeg zip file matches expected checksum'
@@ -135,6 +168,7 @@ class Installer {
     }
   }
   void installFfmpeg() {
+    log.info 'Downloading and installing ffmpeg'
     downloadFfmpeg()
     if (ffmpegGoodZipFile) {
       unzipFfmpegAndLogStatus()
