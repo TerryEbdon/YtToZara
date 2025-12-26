@@ -120,7 +120,7 @@ class Installer {
     } catch (org.apache.tools.ant.BuildException | java.io.IOException exc) {
       log.error "Failed to unzip ffmpeg: ${exc.message}"
     } finally {
-        log.info "Unzip operation time: ${duration(startMillis)}"
+      log.info "Unzip operation time: ${duration(startMillis)}"
     }
     unzipped
   }
@@ -172,6 +172,8 @@ class Installer {
    *                  expected value, false otherwise
    */
   Boolean getFfmpegChecksumIsGood() {
+    log.info 'Verifying checksum'
+    final long startMillis = System.currentTimeMillis()
     ant.checksum(
       file: ffmpegZipPath,
       algorithm: ffmpegChecksumAlgorithm,
@@ -186,6 +188,7 @@ class Installer {
     } else {
       log.error 'ffmpeg install failed, zip file is corrupt'
     }
+    log.info "Checksum operation time: ${duration(startMillis)}"
     fileMatchesChecksum
   }
 
