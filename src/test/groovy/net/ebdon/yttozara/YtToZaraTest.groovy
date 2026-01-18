@@ -10,18 +10,121 @@ import groovy.mock.interceptor.MockFor
 @groovy.util.logging.Log4j2('logger')
 class YtToZaraTest extends GroovyTestCase {
 
-  @SuppressWarnings('JUnitTestMethodWithoutAssert')
-  void testMainInstallFfmpeg() {
-    logger.info '> testMainInstallFfmpeg'
-    MockFor installerMock = MockFor(FfmpegInstaller).tap {
-      demand.install { logger.info 'Fielded call to installFfmpeg.install()' }
+  @Override
+  void tearDown() {
+    super.tearDown()
+    YtToZara.metaClass = null // Undo metaClass changes
+  }
+
+  void testMainInstallFfmpegCallsRun() {
+    logger.info '> testMainInstallFfmpegCallsRun'
+
+    MockFor systemMock = demandSystemExit(YtToZara.success)
+    final String mainArgs = 'install-ffmpeg'
+    Boolean runCalled = false
+
+    YtToZara.metaClass.run = { final String[] runArgs ->
+      logger.info 'Fielded call to YtToZara.run()'
+      assert runArgs.size() == 1 && runArgs.first() == mainArgs
+      runCalled = true
+      YtToZara.success
+    }
+
+    systemMock.use {
+      YtToZara.main('install-ffmpeg')
+    }
+    assert runCalled
+    logger.info '< testMainInstallFfmpegCallsRun'
+  }
+
+  void testRunCallsFfmpegInstallerInstall() {
+    logger.info '> testRunCallsFfmpegInstallerInstall'
+
+    Boolean installCalled = false
+    MockFor ffmpegInstallerMock = MockFor(FfmpegInstaller).tap {
+      demand.install {
+        logger.info 'Fielded call to FfmpegInstaller.install()'
+        installCalled = true
+        YtToZara.success
+      }
+    }
+
+    ffmpegInstallerMock.use {
+      YtToZara ytToZara = new YtToZara()
+      final int result = ytToZara.run(['install-ffmpeg'] as String[])
+      assert result == YtToZara.success
+    }
+    assert installCalled
+    logger.info '< testRunCallsFfmpegInstallerInstall'
+  }
+
+  void testRunCallsInstallerInstallYtDlp() {
+    logger.info '> testRunCallsInstallerInstallYtDlp'
+    MockFor installerMock = MockFor(Installer).tap {
+      demand.installYtDlp {
+        logger.info 'Fielded call to install.installYtDlp()'
+        YtToZara.success
+      }
     }
 
     installerMock.use {
-      String args = 'install-ffmpeg'
-      YtToZara.main( args )
+      assert new YtToZara().run('install-ytdlp') == YtToZara.success
     }
-    logger.info '< testMainInstallFfmpeg'
+    logger.info '< testRunCallsInstallerInstallYtDlp'
+  }
+
+  void testMainTooManyArgs() {
+    logger.info '> testMainTooManyArgs'
+
+    MockFor systemMock = demandSystemExit(YtToZara.ytToZaraTooManyArgs)
+    systemMock.use {
+      YtToZara.main 'Too many arguments'.split()
+    }
+    logger.info '< testMainTooManyArgs'
+  }
+
+  void testMainCallsGuessMp3Tags() {
+    logger.info '> testMainCallsGuessMp3Tags'
+    Boolean guessMp3TagsCalled = false
+    MockFor systemMock = demandSystemExit(YtToZara.success)
+
+    YtToZara.metaClass.guessMp3Tags = { final String trackFileName ->
+      logger.info 'Fielded call to YtToZara.guessMp3Tags()'
+      guessMp3TagsCalled = true
+    }
+
+    systemMock.use {
+      YtToZara.main 'some-track.mp3'
+    }
+    assert guessMp3TagsCalled
+    logger.info '< testMainCallsGuessMp3Tags'
+  }
+
+  private MockFor demandSystemExit(final int expectedStatus) {
+    MockFor(System).tap {
+      demand.exit { int exitStatus ->
+        assert exitStatus == expectedStatus
+      }
+    }
+  }
+
+  void testMainConvertYtToZaraCalled() {
+    logger.info '> testMainConvertYtToZaraCalled'
+
+    MockFor systemMock = demandSystemExit(YtToZara.success)
+
+    Boolean convertYtToZaraCalled = false
+    YtToZara.metaClass.convertYtToZara = {
+      logger.info 'Fielded call to YtToZara.convertYtToZara()'
+      convertYtToZaraCalled = true
+      YtToZara.success
+    }
+
+    systemMock.use {
+      YtToZara.main()
+    }
+    assert convertYtToZaraCalled
+    logger.info '< testMainConvertYtToZaraCalled'
   }
 
   void testAddToTrackList() {
@@ -77,7 +180,7 @@ class YtToZaraTest extends GroovyTestCase {
   }
 
   void testJsonFileName() {
-    logger.info 'testJsonFileName start'
+    logger.info '> testJsonFileName'
     final String expectedFileType = 'info.json'
     List<List<String>> testFileNames = [
       ['blah.mp3',"blah.${expectedFileType}"],
@@ -88,6 +191,6 @@ class YtToZaraTest extends GroovyTestCase {
     testFileNames.each { pair ->
       assert ytToZara.jsonFileName(pair.first()) == pair.last()
     }
-    logger.info 'testJsonFileName end'
+    logger.info '< testJsonFileName'
   }
 }

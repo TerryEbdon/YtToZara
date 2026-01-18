@@ -57,7 +57,7 @@ class Installer {
     "$downloadDir$ffmpegZipFileName" // downloadDir contains the separator
   }
 
-  void installYtDlp() {
+  int installYtDlp() {
     log.info  "Downloading: $ytDlpExe"
 
     assert new File(installPath).exists()
@@ -78,9 +78,11 @@ class Installer {
          flatten: true
       )
       log.debug 'yt-dlp copied'
+      YtToZara.success
     } else {
       log.error ytDlpDownloadFail
       ant.fail  ytDlpDownloadFail
+      YtToZara.ytDlpInstallFail
     }
   }
 
@@ -192,14 +194,17 @@ class Installer {
     fileMatchesChecksum
   }
 
-  void unzipFfmpegAndLogStatus() {
+  int unzipFfmpegAndLogStatus() {
     if (unzipFfmpeg()) {
       log.info 'ffmpeg installed for this app'
+      YtToZara.success
     } else {
       log.error 'Failed to install ffmpeg for this app'
+      YtToZara.ffmpegUnzipFail
     }
   }
-  void installFfmpeg() {
+
+  int installFfmpeg() {
     log.debug 'Downloading and installing ffmpeg'
     downloadFfmpeg()
     if (ffmpegGoodZipFile) {
@@ -207,6 +212,7 @@ class Installer {
     } else {
       log.info "Missing or corrupt file: $ffmpegZipPath"
       log.error ffmpegDownloadFail
+      YtToZara.ffmpegInstallFail
     }
   }
 }
