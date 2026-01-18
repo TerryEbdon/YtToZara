@@ -76,9 +76,6 @@ class InstallerTest extends AntTestBase {
     logger.debug '> testInstallYtDlpFailsWhenNotDownloaded'
 
     antMock.demand.get { Map args -> /* allow call */ }
-    antMock.demand.fail { String msg ->
-      throw new BuildException(msg)
-    }
     fileMock.demand.exists { true }
     fileMock.demand.exists { false }
 
@@ -86,9 +83,8 @@ class InstallerTest extends AntTestBase {
       projectMock.use {
         antMock.use {
           assert installDirAbsolutePath != null
-          shouldFail(BuildException) {
-            new Installer(installDirAbsolutePath).installYtDlp()
-          }
+          assert new Installer(installDirAbsolutePath).
+            installYtDlp() == YtToZara.ytDlpInstallFail
         }
       }
     }

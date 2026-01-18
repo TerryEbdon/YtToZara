@@ -81,7 +81,6 @@ class Installer {
       YtToZara.success
     } else {
       log.error ytDlpDownloadFail
-      ant.fail  ytDlpDownloadFail
       YtToZara.ytDlpInstallFail
     }
   }
