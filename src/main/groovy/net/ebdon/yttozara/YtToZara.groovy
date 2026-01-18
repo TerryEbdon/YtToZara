@@ -21,6 +21,15 @@ import java.util.logging.Level
 class YtToZara {
   private static final Logger audioTagLogger = Logger.getLogger('org.jaudiotagger')
 
+  static final int success             = 0
+  static final int ytToZaraTooManyArgs = 1
+  static final int convertToZaraFail   = 100
+  static final int ytDlpInstallFail    = 200
+  static final int ffmpegInstallFail   = 300
+  static final int ffmpegUnzipFail     = 301
+  static final int guessMp3TagsFail    = 400
+  static final int unexpectedError     = 999
+
   final String outPrefix     = 'out_'
   final String logLevel      = '-loglevel error'
   final String q             = '"'
@@ -38,27 +47,40 @@ class YtToZara {
   Object ytMetadata
 
   static void main(String[] args) {
-    YtToZara ytz = new YtToZara()
-    if (args.size() == 0 ) {
-      ytz.convertYtToZara()
+    final int numArgs = args.size()
+    log.debug "main called with $args -- args.size() is $numArgs"
+    int status = unexpectedError
+
+    YtToZara yt = new YtToZara()
+    if (numArgs == 0) {
+      status = yt.convertYtToZara()
     } else {
-      if (args.size() in 1..2) {
-        final String path = args.last()
-        switch (args.first()) {
-          case 'install-ytdlp': {
-            new Installer(path).installYtDlp()
-            break
-          }
+      if (numArgs in 1..2) {
+        status = yt.run(args)
+      } else {
+        log.error "YtToZara called with $numArgs args when < 3 are expected"
+        status = ytToZaraTooManyArgs
+      }
+    }
+    System.exit status
+  }
 
-          case 'install-ffmpeg': {
-            new FfmpegInstaller(path).install()
-            break
-          }
+  int run( final String[] args ) {
+    log.debug "run called with args: $args"
+    final String path = args.last()
+    switch (args.first()) {
+      case 'install-ytdlp' ->  {
+        new Installer(path).installYtDlp()
+      }
 
-          default: {
-            ytz.guessMp3Tags( args.first() )
-          }
-        }
+      case 'install-ffmpeg' -> {
+        log.debug "path is: $path"
+        new FfmpegInstaller(path).install()
+      }
+
+      default -> {
+        guessMp3Tags( args.first() ) // For command line tests
+        success
       }
     }
   }
@@ -76,12 +98,14 @@ class YtToZara {
     timestamp = playListFileTime.format(fmtTs)
   }
 
-  void convertYtToZara() {
+  int convertYtToZara() {
+    log.info 'Converting to ZaraRadio'
     tee()
     analysePlaylist()
     trimSilence()
     normalise()
     tidyOutputFolder()
+    YtToZara.success
   }
 
   void trimSilence() {

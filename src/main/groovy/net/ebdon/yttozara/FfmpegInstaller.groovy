@@ -10,7 +10,7 @@ class FfmpegInstaller extends Installer {
     super(installPath)
   }
 
-  void install() {
+  int install() {
     log.info 'Installing ffmpeg'
     installFfmpeg()
   }

@@ -366,7 +366,7 @@ ruleset {
     NonFinalSubclassOfSensitiveInterface
     ObjectFinalize
     PublicFinalizeMethod
-    SystemExit
+    // SystemExit // Using System.exit() is appropriate for CLI apps
     UnsafeArrayDeclaration
 
     // rulesets/serialization.xml
