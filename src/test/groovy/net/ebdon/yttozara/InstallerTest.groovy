@@ -284,4 +284,64 @@ class InstallerTest extends AntTestBase {
       ['ffmpegIsGood': expectedStatus ? 'true' : 'false', ]
     }
   }
+
+  /**
+   * Parse a duration string of the form "Xm Ys Zms" and return total
+   * milliseconds.
+   */
+  private long parseDurationMillis(final String duration) {
+    final java.util.regex.Matcher matcher = (duration =~ /(\d+)m (\d+)s (\d+)ms/)
+    assert matcher.matches()
+    final long minutes = matcher[0][1] as long
+    final long seconds = matcher[0][2] as long
+    final long milliseconds = matcher[0][3] as long
+    minutes * 60_000L + seconds * 1000L + milliseconds
+  }
+
+  /**
+   * Helper that asserts the Installer.duration(...) result is within the
+   * supplied tolerance of the expected elapsed milliseconds.
+   */
+  private void assertDurationApproximately(
+      final long expectedElapsed, final long tolerance) {
+
+    final long startMillis = System.currentTimeMillis() - expectedElapsed
+
+    projectMock.use {
+      antMock.use {
+        final Installer installer = new Installer(installDirAbsolutePath)
+        final String dur = installer.duration(startMillis)
+        final long parsed = parseDurationMillis(dur)
+
+        assert parsed >= expectedElapsed
+        assert parsed - expectedElapsed <= tolerance
+      }
+    }
+  }
+
+  void testDurationZeroElapsed() {
+    logger.debug '> testDurationZeroElapsed'
+    final long desiredElapsed = 0L
+    final long tolerance = 200L
+    assertDurationApproximately(desiredElapsed, tolerance)
+    logger.debug '< testDurationZeroElapsed'
+  }
+
+  void testDurationShortElapsed() {
+    logger.debug '> testDurationShortElapsed'
+    final long desiredElapsed = 123L
+    final long tolerance = 200L
+    assertDurationApproximately(desiredElapsed, tolerance)
+    logger.debug '< testDurationShortElapsed'
+  }
+
+  void testDurationLongElapsed() {
+    logger.debug '> testDurationLongElapsed'
+    final long desiredElapsed =
+      (1L * 60L * 1000L) + (2L * 1000L) + 345L // 1m 2s 345ms
+    final long tolerance = 200L
+    assertDurationApproximately(desiredElapsed, tolerance)
+    logger.debug '< testDurationLongElapsed'
+  }
+
 }
