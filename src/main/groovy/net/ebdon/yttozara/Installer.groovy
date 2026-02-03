@@ -16,7 +16,7 @@ class Installer {
   static final String ytDlpFile    = "$downloadDir/$ytDlpExe"
 
   static final String ytDlpUrl =
-    'https://github.com/yt-dlp/yt-dlp/releases/download/2025.12.08/yt-dlp.exe'
+    'https://github.com/yt-dlp/yt-dlp/releases/download/2026.01.31/yt-dlp.exe'
 
   @SuppressWarnings('LineLength')
   static final String ffmpegUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-12-31-14-28/ffmpeg-n8.0.1-34-gbfa334de42-win64-lgpl-8.0.zip'
