@@ -194,6 +194,17 @@ class Installer {
     fileMatchesChecksum
   }
 
+  /**
+   * Attempt to unzip the ffmpeg distribution and log the result.
+   *
+   * <p>
+   * Delegates to {@link #unzipFfmpeg()} and logs a message
+   * indicating whether installation succeeded or failed.
+   *
+   * @return int  {@link YtToZara#success} when the unzip completed and files
+   *              were installed; {@link YtToZara#ffmpegUnzipFail} when the
+   *              unzip failed
+   */
   int unzipFfmpegAndLogStatus() {
     if (unzipFfmpeg()) {
       log.info 'ffmpeg installed for this app'
