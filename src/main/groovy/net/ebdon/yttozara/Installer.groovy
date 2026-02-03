@@ -113,6 +113,7 @@ class Installer {
       ) {
         patternset {
           include name: '**/*.exe'
+          exclude name: '**/ffplay.exe'
         }
         mapper type: 'flatten'
       }
