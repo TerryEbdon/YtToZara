@@ -57,18 +57,8 @@ YtToZara will download its own copies of these apps.
 1. Use the command `YtToZaraUI` from a command prompt.
 2. YtToZara will download its dependencies, if required.
 3. When prompted, enter the URL of a YouTube playlist.
-
-**Note:**
-The playlist must be public or unlisted. This app does **not** work with private
-playlists.
-
 4. YtToZara will download the metadata and audio streams.
 5. The audio files will be converted to MP3s.
-
-**Note:**
-The MP3s will have a bit-rate of 128 kbps. This is the highest bit-rate that
-YouTube provides for free accounts.
-
 6. YtToZara will trim silence from the beginning and end of each track. This
    works fine for speech and most music. If it causes you problems then please
    [log an issue] and I'll look into it.
@@ -76,6 +66,13 @@ YouTube provides for free accounts.
 7. YtToZara will normalise every track.
 8. A ZaraRadio playlist will be created. The playlist will have the same name as
    the YouTube playlist.
+
+## Notes:
+
+1. The playlist must be public or unlisted. This app does **not** work with
+   private playlists.
+2. The MP3s will have a bit-rate of 128 kbps. This is
+   the highest bit-rate that YouTube provides for free accounts.
 
 [yt-dlp]: https://github.com/yt-dlp/yt-dlp
 [ffmpeg and ffprobe]: https://www.ffmpeg.org/
