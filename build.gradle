@@ -55,7 +55,7 @@ java {
   }
 }
 
-project.version = 'v2.1.4'
+project.version = 'v2.1.5'
 
 jar {
   manifest {
