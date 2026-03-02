@@ -73,6 +73,7 @@ class YtToZaraTest extends GroovyTestCase {
     logger.info '< testRunCallsInstallerInstallYtDlp'
   }
 
+  @SuppressWarnings('JUnitTestMethodWithoutAssert')
   void testMainTooManyArgs() {
     logger.info '> testMainTooManyArgs'
 
