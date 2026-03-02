@@ -22,13 +22,13 @@ class FfmpegInstaller extends Installer {
         YtToZara.ffmpegInstallFail
       }
     } else {
-      log.error 'Ffmpeg download failed'
+      log.error ffmpegDownloadFail
       downloadStatus
     }
   }
 
   int downloadFfmpeg() {
-    if ( new File(installPath).exists() ){
+    if ( new File(installPath).exists() ) {
       log.info   "Downloading $ffmpegZipFileName"
       log.debug  "Downloading from $ffmpegUrl"
       ant.get (

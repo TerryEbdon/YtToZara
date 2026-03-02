@@ -7,7 +7,7 @@ import org.apache.tools.ant.Project
 /**
  * Unit tests for the Installer bootstrap class.
  *
- * Exercises Installer.installYtDlp() and Installer.installFfmpeg()
+ * Exercises Installer.installYtDlp()
  * <p>
  * Tests cover:
  * <ul>

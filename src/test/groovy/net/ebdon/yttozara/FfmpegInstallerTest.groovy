@@ -21,15 +21,6 @@ import org.apache.tools.ant.BuildException
 @groovy.util.logging.Log4j2('logger')
 class FfmpegInstallerTest extends InstallerTestBase {
 
-  @Override
-  void setUp() {
-    super.setUp()
-    final String root = File.listRoots().first()
-    installDir = new File("${root}the-app-dir/bin")
-    installDirAbsolutePath = installDir.absolutePath
-    fileMock = MockFor(File)
-  }
-
   void testConstructorSetsMessageOutputLevel() {
     logger.debug '> testConstructorSetsMessageOutputLevel'
     // Construct Installer - constructor sets messageOutputLevel on shared
@@ -167,7 +158,7 @@ class FfmpegInstallerTest extends InstallerTestBase {
 
       projectMock.use {
         antMock.use {
-        FfmpegInstaller installer = FfmpegInstaller(installDirAbsolutePath)
+          FfmpegInstaller installer = FfmpegInstaller(installDirAbsolutePath)
           assert installer.ffmpegGoodZipFile
         }
       }
