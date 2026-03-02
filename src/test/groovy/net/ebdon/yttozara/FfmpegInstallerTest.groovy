@@ -17,7 +17,7 @@ import org.apache.tools.ant.BuildException
  *       or unzip fails
  * </ul>
  */
-@Newify(MockFor)
+@Newify([MockFor,FfmpegInstaller])
 @groovy.util.logging.Log4j2('logger')
 class FfmpegInstallerTest extends InstallerTestBase {
 
@@ -34,7 +34,7 @@ class FfmpegInstallerTest extends InstallerTestBase {
     logger.debug '> testConstructorSetsMessageOutputLevel'
     // Construct Installer - constructor sets messageOutputLevel on shared
     // AntBuilder
-   FfmpegInstaller installer = new FfmpegInstaller (installDir.absolutePath)
+    FfmpegInstaller installer = FfmpegInstaller(installDir.absolutePath)
     assert installer.ant.project.buildListeners[0].
       messageOutputLevel == Project.MSG_WARN
     logger.debug '< testConstructorSetsMessageOutputLevel'
@@ -118,7 +118,7 @@ class FfmpegInstallerTest extends InstallerTestBase {
 
     projectMock.use {
       antMock.use {
-       FfmpegInstaller installer = new FfmpegInstaller (installDirAbsolutePath)
+        FfmpegInstaller installer = FfmpegInstaller(installDirAbsolutePath)
         assert installer.ffmpegChecksumIsGood
       }
     }
@@ -143,7 +143,7 @@ class FfmpegInstallerTest extends InstallerTestBase {
 
     projectMock.use {
       antMock.use {
-       FfmpegInstaller installer = new FfmpegInstaller (installDirAbsolutePath)
+        FfmpegInstaller installer = FfmpegInstaller(installDirAbsolutePath)
         assert installer.ffmpegChecksumIsGood == false
       }
     }
@@ -167,7 +167,7 @@ class FfmpegInstallerTest extends InstallerTestBase {
 
       projectMock.use {
         antMock.use {
-         FfmpegInstaller installer = new FfmpegInstaller (installDirAbsolutePath)
+        FfmpegInstaller installer = FfmpegInstaller(installDirAbsolutePath)
           assert installer.ffmpegGoodZipFile
         }
       }
@@ -193,7 +193,7 @@ class FfmpegInstallerTest extends InstallerTestBase {
 
       projectMock.use {
         antMock.use {
-         FfmpegInstaller installer = new FfmpegInstaller (installDirAbsolutePath)
+          FfmpegInstaller installer = FfmpegInstaller(installDirAbsolutePath)
           assert installer.ffmpegGoodZipFile == false
         }
       }
@@ -210,7 +210,7 @@ class FfmpegInstallerTest extends InstallerTestBase {
 
     projectMock.use {
       antMock.use {
-       FfmpegInstaller installer = new FfmpegInstaller (installDirAbsolutePath)
+        FfmpegInstaller installer = FfmpegInstaller(installDirAbsolutePath)
         assert installer.ffmpegChecksumIsGood
       }
     }
@@ -222,7 +222,6 @@ class FfmpegInstallerTest extends InstallerTestBase {
    * Helper that asserts the FfmpegInstaller.duration(...) result is within
    * tolerance of the expected elapsed milliseconds.
    */
-  @Newify(FfmpegInstaller)
   @Override
   void assertDurationApproximately(final long expectedElapsed) {
     final long startMillis = System.currentTimeMillis() - expectedElapsed
@@ -258,5 +257,64 @@ class FfmpegInstallerTest extends InstallerTestBase {
     logger.debug '> testDurationLongElapsed'
     durationLongElapsed()
     logger.debug '< testDurationLongElapsed'
+  }
+
+  void testInstallReturnsFfmpegInstallFailWhenZipMissing() {
+    logger.debug '> testInstallReturnsFfmpegInstallFailWhenZipMissing'
+
+    fileMock.demand.exists { false }
+
+    runWithMocks(true) {
+      final FfmpegInstaller installer = FfmpegInstaller(installDirAbsolutePath)
+      assert installer.install() == YtToZara.ffmpegInstallFail
+    }
+
+    logger.debug '< testInstallReturnsFfmpegInstallFailWhenZipMissing'
+  }
+
+  void testInstallReturnsFfmpegInstallFailWhenChecksumBad() {
+    logger.debug '> testInstallReturnsFfmpegInstallFailWhenChecksumBad'
+
+    demandFfmpegGetUrl()
+    fileMock.demand.exists(2) { true }
+    demandFfmpegChecksum()
+    demandChecksumIsBad()
+
+    runWithMocks(true) {
+      final FfmpegInstaller installer = FfmpegInstaller(installDirAbsolutePath)
+      assert installer.install() == YtToZara.ffmpegInstallFail
+    }
+
+    logger.debug '< testInstallReturnsFfmpegInstallFailWhenChecksumBad'
+  }
+
+  void testInstallReturnsSuccessWhenZipGoodAndUnzipSucceeds() {
+    logger.debug '> testInstallReturnsSuccessWhenZipGoodAndUnzipSucceeds'
+
+    preUnzipDemands()
+    demandUnzip()
+    fileMock.demand.exists(2) { true }
+
+    runWithMocks(true) {
+      final FfmpegInstaller installer = FfmpegInstaller(installDirAbsolutePath)
+      assert installer.install() == YtToZara.success
+    }
+
+    logger.debug '< testInstallReturnsSuccessWhenZipGoodAndUnzipSucceeds'
+  }
+
+  void testInstallReturnsFfmpegUnzipFailWhenUnzipThrows() {
+    logger.debug '> testInstallReturnsFfmpegUnzipFailWhenUnzipThrows'
+
+    preUnzipDemands()
+    demandUnzip(true)
+    fileMock.demand.exists(2) { true }
+
+    runWithMocks(true) {
+      final FfmpegInstaller installer = FfmpegInstaller(installDirAbsolutePath)
+      assert installer.install() == YtToZara.ffmpegUnzipFail
+    }
+
+    logger.debug '< testInstallReturnsFfmpegUnzipFailWhenUnzipThrows'
   }
 }

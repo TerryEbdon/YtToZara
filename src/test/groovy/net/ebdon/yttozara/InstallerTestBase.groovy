@@ -86,4 +86,30 @@ abstract class InstallerTestBase extends AntTestBase {
     assertDurationApproximately(desiredElapsed)
     logger.debug '< durationLongElapsed'
   }
+
+  /**
+   * Run a closure with projectMock and antMock active, optionally also
+   * wrapping with fileMock.
+   *
+   * @param useFileMock  when true fileMock.use() wraps the inner mocks;
+   *                     defaults to true
+   * @param c            the closure to execute inside the mock contexts
+   */
+  void runWithMocks(final boolean useFileMock = true, final Closure c) {
+    if (useFileMock) {
+      fileMock.use {
+        projectMock.use {
+          antMock.use {
+            c.call()
+          }
+        }
+      }
+    } else {
+      projectMock.use {
+        antMock.use {
+          c.call()
+        }
+      }
+    }
+  }
 }

@@ -85,20 +85,6 @@ class Installer {
     }
   }
 
-  void downloadFfmpeg() {
-    assert new File(installPath).exists()
-
-    log.info   "Downloading $ffmpegZipFileName"
-    log.debug  "Downloading from $ffmpegUrl"
-    ant.get (
-      src:          ffmpegUrl,
-      dest:         downloadDir,
-      verbose:      false,
-      usetimestamp: true,
-    )
-    log.info "Downloaded  $ffmpegZipFileName"
-  }
-
   Boolean unzipFfmpeg() {
     log.info  "Unzipping into: $installPath"
 
