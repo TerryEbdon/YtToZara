@@ -11,7 +11,14 @@ class FfmpegInstaller extends Installer {
   }
 
   int install() {
-    log.info 'Installing ffmpeg'
-    installFfmpeg()
+    log.debug '> Downloading and installing ffmpeg'
+    downloadFfmpeg()
+    if (ffmpegGoodZipFile) {
+      unzipFfmpegAndLogStatus()
+    } else {
+      log.info "Missing or corrupt file: $ffmpegZipPath"
+      log.error ffmpegDownloadFail
+      YtToZara.ffmpegInstallFail
+    }
   }
 }
