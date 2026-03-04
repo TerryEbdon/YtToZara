@@ -70,7 +70,7 @@ class YtToZara {
     final String path = args.last()
     switch (args.first()) {
       case 'install-ytdlp' ->  {
-        new Installer(path).installYtDlp()
+        new YtDlpInstaller(path).install()
       }
 
       case 'install-ffmpeg' -> {

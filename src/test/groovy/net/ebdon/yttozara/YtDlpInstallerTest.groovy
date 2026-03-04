@@ -17,13 +17,13 @@ import org.apache.tools.ant.Project
  */
 @Newify(MockFor)
 @groovy.util.logging.Log4j2('logger')
-class InstallerTest extends InstallerTestBase {
+class YtDlpInstallerTest extends InstallerTestBase {
 
   void testConstructorSetsMessageOutputLevel() {
     logger.debug '> testConstructorSetsMessageOutputLevel'
     // Construct Installer - constructor sets messageOutputLevel on shared
     // AntBuilder
-    Installer installer = new Installer(installDir.absolutePath)
+    Installer installer = new YtDlpInstaller(installDir.absolutePath)
     assert installer.ant.project.buildListeners[0].
       messageOutputLevel == Project.MSG_WARN
     logger.debug '< testConstructorSetsMessageOutputLevel'
@@ -33,13 +33,13 @@ class InstallerTest extends InstallerTestBase {
     logger.debug '> testInstallYtDlpCopiesWhenDownloaded'
 
     antMock.demand.get { Map args ->
-      assert args.src == Installer.ytDlpUrl
+      assert args.src == YtDlpInstaller.ytDlpUrl
       assert args.dest == Installer.downloadDir
       assert args.usetimestamp == true
     }
 
     antMock.demand.copy { Map args ->
-      assert args.file == Installer.ytDlpFile
+      assert args.file == YtDlpInstaller.ytDlpFile
       assert args.todir == installDirAbsolutePath
       assert args.flatten == true
     }
@@ -48,7 +48,7 @@ class InstallerTest extends InstallerTestBase {
     fileMock.use {
       projectMock.use {
         antMock.use {
-          new Installer(installDirAbsolutePath).installYtDlp()
+          new YtDlpInstaller(installDirAbsolutePath).install()
         }
       }
     }
@@ -66,8 +66,8 @@ class InstallerTest extends InstallerTestBase {
       projectMock.use {
         antMock.use {
           assert installDirAbsolutePath != null
-          assert new Installer(installDirAbsolutePath).
-            installYtDlp() == YtToZara.ytDlpInstallFail
+          assert new YtDlpInstaller(installDirAbsolutePath).
+            install() == YtToZara.ytDlpInstallFail
         }
       }
     }
@@ -84,7 +84,7 @@ class InstallerTest extends InstallerTestBase {
 
     projectMock.use {
       antMock.use {
-        final Installer installer = new Installer(installDirAbsolutePath)
+        final Installer installer = new YtDlpInstaller(installDirAbsolutePath)
         final String dur = installer.duration(startMillis)
         final long parsed = parseDurationMillis(dur)
 

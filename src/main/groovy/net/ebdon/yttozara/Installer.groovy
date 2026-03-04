@@ -7,110 +7,18 @@ import org.apache.tools.ant.Project
  * Bootstrap class that downloads dependencies.
  */
 @groovy.util.logging.Log4j2
-class Installer {
-  static final String ffmpegDownloadFail = 'ffmpeg download failed.'
-  static final String ytDlpDownloadFail  = 'yt-dlp download failed.'
-
+abstract class Installer {
   static final String downloadDir  = System.getProperty('java.io.tmpdir')
-  static final String ytDlpExe     = 'yt-dlp.exe'
-  static final String ytDlpFile    = "$downloadDir/$ytDlpExe"
-
-  static final String ytDlpUrl =
-    'https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.03/yt-dlp.exe'
-
-  @SuppressWarnings('LineLength')
-  static final String ffmpegUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-12-31-14-28/ffmpeg-n8.0.1-34-gbfa334de42-win64-lgpl-8.0.zip'
-
-  static String ffmpegChecksumAlgorithm = 'SHA-256'
-  static String ffmpegExpectedSha =
-    '60145617865cc8e9165a63dc220929f01ebfe17f0534b4e5977ed991d2e56c0e'
 
   final AntBuilder ant
-
   final String installPath
 
-  Installer(final String installPath) {
+  abstract int install()
+
+  protected Installer(final String installPath) {
     this.installPath = installPath
     ant = new AntBuilder()
     ant.project.buildListeners[0].messageOutputLevel = Project.MSG_WARN
-  }
-
-  static String getFfmpegZipFileName() {
-    ffmpegUrl.split('/').last()
-  }
-
-  /**
-   * Return the full path to the downloaded ffmpeg zip file.
-   *
-   * <p>
-   * The returned value is formed by combining the configured download
-   * directory and the ffmpeg zip file name (as returned by
-   * {@code getFfmpegZipFileName()}). This is always correct on Microsoft
-   * Windows, which is the only supported platform/environment.
-   *
-   * Note: Do <b>NOT</b> normalise the path via {@link java.io.File}, as that
-   * breaks the unit test. Fixing that would require excessive complexity.
-   *
-   * @return String  absolute path to the ffmpeg zip file in the download dir
-   */
-  static String getFfmpegZipPath() {
-    "$downloadDir$ffmpegZipFileName" // downloadDir contains the separator
-  }
-
-  int installYtDlp() {
-    log.info  "Downloading: $ytDlpExe"
-
-    assert new File(installPath).exists()
-
-    ant.get (
-      src:          ytDlpUrl,
-      dest:         downloadDir,
-      verbose:      false,
-      usetimestamp: true
-    )
-
-    if (new File(ytDlpFile).exists()) {
-      log.debug 'yt-dlp downloaded'
-      log.info "Copying into: $installPath"
-      ant.copy(
-         file:  ytDlpFile,
-         todir: installPath,
-         flatten: true
-      )
-      log.debug 'yt-dlp copied'
-      YtToZara.success
-    } else {
-      log.error ytDlpDownloadFail
-      YtToZara.ytDlpInstallFail
-    }
-  }
-
-  Boolean unzipFfmpeg() {
-    log.info  "Unzipping into: $installPath"
-
-    final long startMillis = System.currentTimeMillis()
-
-    Boolean unzipped = false
-
-    try {
-      ant.unzip(
-        src:  ffmpegZipPath,
-        dest: installPath,
-      ) {
-        patternset {
-          include name: '**/*.exe'
-          exclude name: '**/ffplay.exe'
-        }
-        mapper type: 'flatten'
-      }
-      unzipped = true
-      log.info 'ffmpeg distribution unzipped'
-    } catch (org.apache.tools.ant.BuildException | java.io.IOException exc) {
-      log.error "Failed to unzip ffmpeg: ${exc.message}"
-    } finally {
-      log.info "Unzip operation time: ${duration(startMillis)}"
-    }
-    unzipped
   }
 
   /**
@@ -137,7 +45,7 @@ class Installer {
     "${minutes}m ${seconds}s ${milliseconds}ms"
   }
 
-  Boolean getFfmpegGoodZipFile() {
+  final Boolean getFfmpegGoodZipFile() {
     File zipFile = new File(ffmpegZipPath)
     zipFile.exists() && ffmpegChecksumIsGood
   }
@@ -159,7 +67,7 @@ class Installer {
    * @return Boolean  true when Ant indicates the file checksum matches the
    *                  expected value, false otherwise
    */
-  Boolean getFfmpegChecksumIsGood() {
+  final Boolean getFfmpegChecksumIsGood() {
     log.info 'Verifying checksum'
     final long startMillis = System.currentTimeMillis()
     ant.checksum(
@@ -170,7 +78,7 @@ class Installer {
     )
 
     @SuppressWarnings('DuplicateStringLiteral')
-    Boolean fileMatchesChecksum = ant.project.properties.ffmpegIsGood == 'true'
+    final Boolean fileMatchesChecksum = ant.project.properties.ffmpegIsGood == 'true'
     if (fileMatchesChecksum) {
       log.info 'ffmpeg zip file matches expected checksum'
     } else {
@@ -179,26 +87,4 @@ class Installer {
     log.info "Checksum operation time: ${duration(startMillis)}"
     fileMatchesChecksum
   }
-
-  /**
-   * Attempt to unzip the ffmpeg distribution and log the result.
-   *
-   * <p>
-   * Delegates to {@link #unzipFfmpeg()} and logs a message
-   * indicating whether installation succeeded or failed.
-   *
-   * @return int  {@link YtToZara#success} when the unzip completed and files
-   *              were installed; {@link YtToZara#ffmpegUnzipFail} when the
-   *              unzip failed
-   */
-  int unzipFfmpegAndLogStatus() {
-    if (unzipFfmpeg()) {
-      log.info 'ffmpeg installed for this app'
-      YtToZara.success
-    } else {
-      log.error 'Failed to install ffmpeg for this app'
-      YtToZara.ffmpegUnzipFail
-    }
-  }
-
 }

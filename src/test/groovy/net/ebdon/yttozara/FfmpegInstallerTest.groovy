@@ -308,4 +308,20 @@ class FfmpegInstallerTest extends InstallerTestBase {
 
     logger.debug '< testInstallReturnsFfmpegUnzipFailWhenUnzipThrows'
   }
+
+  void testInstallReturnsFfmpegInstallFailWhenDownloadThrows() {
+    logger.debug '> testInstallReturnsFfmpegInstallFailWhenDownloadThrows'
+
+    fileMock.demand.exists { true }  // installPath exists
+    antMock.demand.get { Map args ->
+      throw new BuildException('simulated download failure')
+    }
+
+    runWithMocks {
+      final FfmpegInstaller installer = FfmpegInstaller(installDirAbsolutePath)
+      assert installer.install() == YtToZara.ffmpegInstallFail
+    }
+
+    logger.debug '< testInstallReturnsFfmpegInstallFailWhenDownloadThrows'
+  }
 }
