@@ -5,7 +5,6 @@ package net.ebdon.yttozara
  */
 @groovy.util.logging.Log4j2
 class YtDlpInstaller extends Installer {
-  static final String downloadDir       = System.getProperty('java.io.tmpdir')
   static final String ytDlpExe          = 'yt-dlp.exe'
   static final String ytDlpFile         = "$downloadDir/$ytDlpExe"
   static final String ytDlpDownloadFail = 'yt-dlp download failed.'
