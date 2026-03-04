@@ -58,11 +58,11 @@ class YtToZaraTest extends GroovyTestCase {
     logger.info '< testRunCallsFfmpegInstallerInstall'
   }
 
-  void testRunCallsInstallerInstallYtDlp() {
-    logger.info '> testRunCallsInstallerInstallYtDlp'
-    MockFor installerMock = MockFor(Installer).tap {
-      demand.installYtDlp {
-        logger.info 'Fielded call to install.installYtDlp()'
+  void testRunCallsYtDlpInstallerInstall() {
+    logger.info '> testRunCallsYtDlpInstallerInstall'
+    MockFor installerMock = MockFor(YtDlpInstaller).tap {
+      demand.install {
+        logger.info 'Fielded call to YtDlpInstaller.install()'
         YtToZara.success
       }
     }
