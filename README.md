@@ -14,6 +14,7 @@ YtToZara has been tested with Windows 10 and Windows 11.
 
 - YtToZara has been tested with [ZaraRadio 1.6.2 Free Edition].
 - It has **not** been tested with ZaraStudio
+- Do **not** disable assertions
 
 ### Non-Latin character sets
 
