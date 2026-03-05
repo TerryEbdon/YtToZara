@@ -25,3 +25,5 @@ The most-recent stable library versions are preferred.
 requests and other communications. Spelling and grammar should use British or
 Irish conventions where possible.
 - Unit tests must be derived from groovy.test.GroovyTestCase.
+- Assume assertions are always enabled.
+- Running with assertions disabled is not supported.
