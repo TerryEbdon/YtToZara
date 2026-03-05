@@ -27,3 +27,6 @@ Irish conventions where possible.
 - Unit tests must be derived from groovy.test.GroovyTestCase.
 - Assume assertions are always enabled.
 - Running with assertions disabled is not supported.
+- This is a Microsoft Windows app, other environments are not supported.
+- All file paths must use Microsoft Windows conventions.
+- Paths written to files must use backslashes.
