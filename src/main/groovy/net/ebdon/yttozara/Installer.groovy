@@ -57,7 +57,7 @@ abstract class Installer {
    * checksum matches the expected value. If either check fails the method
    * returns false without throwing.
    *
-   * @return Boolean  true when the zip file exists and the checksum is good;
+   * @return Boolean  true when the payload file exists and the checksum is good;
    *                  false otherwise
    */
   protected Boolean getPayloadIsGood() {
