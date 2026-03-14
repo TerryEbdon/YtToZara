@@ -96,7 +96,7 @@ abstract class Installer {
       property:       expectedSha,        // Will be compared to calc'd checksum
       verifyProperty: 'checksumVerified'  // Ant returns 'true' or 'false'
     )
-    log.debug 'returned from ant.checksum())'
+    log.debug 'returned from ant.checksum()'
     // @SuppressWarnings('DuplicateStringLiteral')
     final Boolean fileMatchesChecksum = ant.project.properties.checksumVerified == 'true'
     log.info "Checksum operation time: ${duration(startMillis)}"
