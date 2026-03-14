@@ -33,6 +33,7 @@ abstract class InstallerTestBase extends AntTestBase {
   abstract void testDurationShortElapsed()
   abstract void testDurationLongElapsed()
   abstract void assertDurationApproximately(final long expectedElapsed)
+  abstract Boolean validPayloadPath( String filePath )
 
   protected void demandChecksumIsGood() {
     demandChecksum true
@@ -46,7 +47,11 @@ abstract class InstallerTestBase extends AntTestBase {
     demandGetProject()
 
     projectMock.demand.getProperties {
-      ['ffmpegIsGood': expectedStatus ? 'true' : 'false', ]
+      logger.info 'Getting properties in InstallerTestBase.demandChecksum()'
+      ['checksumVerified': expectedStatus ? 'true' : 'false', ]
+    }
+    antMock.demand.checksum { Map args ->
+      logger.info "In checksum with args $args"
     }
   }
 
@@ -110,6 +115,26 @@ abstract class InstallerTestBase extends AntTestBase {
           c.call()
         }
       }
+    }
+  }
+
+  protected Boolean validAlgorithm( String algName) {
+    algName == 'SHA-256'
+  }
+
+  protected Boolean validChecksumSize(String checksum) {
+    checksum.length() == 64
+  }
+
+  protected void demandChecksum() {
+    logger.info 'In InstallerTestBase.demandChecksum()'
+    antMock.demand.checksum { Map args ->
+      logger.info 'in mock checksum()'
+      assert validPayloadPath(args.file)
+      assert validAlgorithm(args.algorithm)
+      assert validChecksumSize(args.property)
+      assert args.verifyProperty == 'checksumVerified'
+      true
     }
   }
 }
