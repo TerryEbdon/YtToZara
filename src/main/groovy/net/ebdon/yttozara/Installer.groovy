@@ -14,6 +14,10 @@ abstract class Installer {
   final String installPath
 
   abstract int install()
+  abstract String getPayloadPath()
+  abstract String getExpectedSha()
+
+  final String checksumAlgorithmName = 'SHA-256'
 
   protected Installer(final String installPath) {
     this.installPath = installPath
@@ -45,19 +49,35 @@ abstract class Installer {
     "${minutes}m ${seconds}s ${milliseconds}ms"
   }
 
-  final Boolean getFfmpegGoodZipFile() {
-    File zipFile = new File(ffmpegZipPath)
-    zipFile.exists() && ffmpegChecksumIsGood
+  /**
+   * Check that the downloaded file exists and passes checksum verification.
+   *
+   * <p>
+   * Returns true only when the payload file is present on disk and the
+   * checksum matches the expected value. If either check fails the method
+   * returns false without throwing.
+   *
+   * @return Boolean  true when the zip file exists and the checksum is good;
+   *                  false otherwise
+   */
+  protected Boolean getPayloadIsGood() {
+    if (new File(payloadPath).exists()) {
+      log.debug 'payload file DOES exist, running checksum'
+      checksumIsGood
+    } else {
+      log.error "Downloaded file not found: $payloadPath"
+      false
+    }
   }
 
   /**
-   * Verify the ffmpeg zip file checksum using Ant's checksum task.
+   * Verify the payload's checksum using Ant's checksum task.
    *
    * <p>
-   * This method invokes the Ant checksum task against the file returned by
-   * {@code ffmpegZipPath} using the algorithm configured in
-   * {@code ffmpegChecksumAlgorithm}. The Ant task verifies the
-   * checksum and save the verification result in the {@code ffmpegIsGood}
+   * This method invokes the Ant checksum task against the file
+   * using the algorithm configured in
+   * {@code getChecksumAlgorithmName}. The Ant task verifies the
+   * checksum and saves the verification result in the {@code checksumVerified}
    * project property.
    * <p>
    * Note: This is the correct way to compare the calculated and expected
@@ -67,24 +87,25 @@ abstract class Installer {
    * @return Boolean  true when Ant indicates the file checksum matches the
    *                  expected value, false otherwise
    */
-  final Boolean getFfmpegChecksumIsGood() {
+  final Boolean getChecksumIsGood() {
     log.info 'Verifying checksum'
     final long startMillis = System.currentTimeMillis()
     ant.checksum(
-      file: ffmpegZipPath,
-      algorithm: ffmpegChecksumAlgorithm,
-      property: ffmpegExpectedSha,        // Will be compared to calc'd checksum
-      verifyProperty: 'ffmpegIsGood'      // Ant returns 'true' or 'false'
+      file:           payloadPath,
+      algorithm:      checksumAlgorithmName,
+      property:       expectedSha,        // Will be compared to calc'd checksum
+      verifyProperty: 'checksumVerified'  // Ant returns 'true' or 'false'
     )
-
-    @SuppressWarnings('DuplicateStringLiteral')
-    final Boolean fileMatchesChecksum = ant.project.properties.ffmpegIsGood == 'true'
-    if (fileMatchesChecksum) {
-      log.info 'ffmpeg zip file matches expected checksum'
-    } else {
-      log.error 'ffmpeg install failed, zip file is corrupt'
-    }
+    log.debug 'returned from ant.checksum())'
+    // @SuppressWarnings('DuplicateStringLiteral')
+    final Boolean fileMatchesChecksum = ant.project.properties.checksumVerified == 'true'
     log.info "Checksum operation time: ${duration(startMillis)}"
+
+    if (fileMatchesChecksum) {
+      log.info 'Download has correct checksum'
+    } else {
+      log.error 'Checksum does not verify. Download is corrupt'
+    }
     fileMatchesChecksum
   }
 }

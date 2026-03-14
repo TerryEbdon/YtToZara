@@ -7,25 +7,35 @@ package net.ebdon.yttozara
 class FfmpegInstaller extends Installer {
   static final String ffmpegDownloadFail = 'ffmpeg download failed.'
 
-  @SuppressWarnings('LineLength')
-  static final String ffmpegUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-12-31-14-28/ffmpeg-n8.0.1-34-gbfa334de42-win64-lgpl-8.0.zip'
-
-  static String ffmpegChecksumAlgorithm = 'SHA-256'
-  static String ffmpegExpectedSha =
-    '60145617865cc8e9165a63dc220929f01ebfe17f0534b4e5977ed991d2e56c0e'
+  @SuppressWarnings(['LineLength','GetterMethodCouldBeProperty'])
+  static String getDistributionUrl() {
+    'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-12-31-14-28/ffmpeg-n8.0.1-34-gbfa334de42-win64-lgpl-8.0.zip'
+  }
 
   FfmpegInstaller(final String installPath) {
     super(installPath)
   }
 
+  @Override
+  String getPayloadPath() { // replaces getFfmpegZipPath()
+    "$downloadDir$ffmpegZipFileName"
+  }
+
+  @Override
+  @SuppressWarnings('GetterMethodCouldBeProperty')
+  String getExpectedSha() {
+    '60145617865cc8e9165a63dc220929f01ebfe17f0534b4e5977ed991d2e56c0e'
+  }
+
+  @Override
   int install() {
     log.debug '> Downloading and installing ffmpeg'
     final int downloadStatus = downloadFfmpeg()
     if (downloadStatus == YtToZara.success) {
-      if (ffmpegGoodZipFile) {
+      if (payloadIsGood) {
         unzipFfmpegAndLogStatus()
       } else {
-        log.info  'Missing or corrupt file: {}', ffmpegZipPath
+        log.info  "Missing or corrupt file: $payloadPath"
         log.error ffmpegDownloadFail
         YtToZara.ffmpegInstallFail
       }
@@ -39,10 +49,10 @@ class FfmpegInstaller extends Installer {
     Boolean downloadThrewException = false
     if (new File(installPath).exists()) {
       log.info   "Downloading $ffmpegZipFileName"
-      log.debug  "Downloading from $ffmpegUrl"
+      log.debug  "Downloading from $distributionUrl"
       try {
         ant.get(
-          src:          ffmpegUrl,
+          src:          distributionUrl,
           dest:         downloadDir,
           verbose:      false,
           usetimestamp: true,
@@ -64,29 +74,11 @@ class FfmpegInstaller extends Installer {
   }
 
   protected static String getFfmpegZipFileName() {
-    ffmpegUrl.split('/').last()
-  }
-
-  /**
-   * Return the full path to the downloaded ffmpeg zip file.
-   *
-   * <p>
-   * The returned value is formed by combining the configured download
-   * directory and the ffmpeg zip file name (as returned by
-   * {@code getFfmpegZipFileName()}). This is always correct on Microsoft
-   * Windows, which is the only supported platform/environment.
-   *
-   * Note: Do <b>NOT</b> normalise the path via {@link java.io.File}, as that
-   * breaks the unit test. Fixing that would require excessive complexity.
-   *
-   * @return String  absolute path to the ffmpeg zip file in the download dir
-   */
-  protected static String getFfmpegZipPath() {
-    "$downloadDir$ffmpegZipFileName" // downloadDir contains the separator
+    distributionUrl.split('/').last()
   }
 
   Boolean unzipFfmpeg() {
-    log.info  "Unzipping into: $installPath"
+    log.info "Unzipping into: $installPath"
 
     final long startMillis = System.currentTimeMillis()
 
@@ -94,7 +86,7 @@ class FfmpegInstaller extends Installer {
 
     try {
       ant.unzip(
-        src:  ffmpegZipPath,
+        src:  payloadPath,
         dest: installPath,
       ) {
         patternset {

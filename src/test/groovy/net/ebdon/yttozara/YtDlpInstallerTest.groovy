@@ -12,7 +12,7 @@ import org.apache.tools.ant.Project
  * Tests cover:
  * <ul>
  *  <li> constructor message output level
- *  <li> successful download and copy/unzip flows
+ *  <li> successful download and copy flows
  * </ul>
  */
 @Newify(MockFor)
@@ -29,30 +29,8 @@ class YtDlpInstallerTest extends InstallerTestBase {
     logger.debug '< testConstructorSetsMessageOutputLevel'
   }
 
-  void testInstallYtDlpCopiesWhenDownloaded() {
-    logger.debug '> testInstallYtDlpCopiesWhenDownloaded'
-
-    antMock.demand.get { Map args ->
-      assert args.src == YtDlpInstaller.ytDlpUrl
-      assert args.dest == Installer.downloadDir
-      assert args.usetimestamp == true
-    }
-
-    antMock.demand.copy { Map args ->
-      assert args.file == YtDlpInstaller.ytDlpFile
-      assert args.todir == installDirAbsolutePath
-      assert args.flatten == true
-    }
-    fileMock.demand.exists(2) { true }
-
-    fileMock.use {
-      projectMock.use {
-        antMock.use {
-          new YtDlpInstaller(installDirAbsolutePath).install()
-        }
-      }
-    }
-    logger.debug '< testInstallYtDlpCopiesWhenDownloaded'
+  @Override Boolean validPayloadPath( String filePath ) {
+    filePath.contains(YtDlpInstaller.ytDlpExe)
   }
 
   void testInstallYtDlpFailsWhenNotDownloaded() {
