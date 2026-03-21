@@ -21,3 +21,9 @@ normalise {
   enabled                  = true
   integratedLoudnessTarget = -13   // LUFS (Loudness Units Full Scale)
 }
+
+// transliterate {
+//   // For transliteration to work reliably you must *not* use
+//   // `--restrict-filenames` in YtToZara.cmd
+//   enabled = true
+// }

@@ -1,10 +1,13 @@
 @echo off
-@setlocal
+setlocal
+rem Set the character set to UTF-8, as expected by YtToZara.
+chcp 65001
 set tee="%~dp0\bin\YtToZara.bat"
 set ytcmd="%~dp0\bin\yt-dlp" -q
 set audioFormat=--audio-format mp3
 set bitRate=--audio-quality 128K
-set latinCharsOnly=--restrict-filenames
+@REM set latinCharsOnly=--restrict-filenames
+set latinCharsOnly= 
 set displayNames=--print filename
 set filenameFormat=--output "%%(playlist_index)s. %%(title)s.%%(ext)s"
 set fileNameOptions=%displayNames% %latinCharsOnly% %filenameFormat%

@@ -11,6 +11,9 @@ import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.audio.mp3.MP3AudioHeader
 import java.util.logging.Logger
 import java.util.logging.Level
+import java.nio.charset.StandardCharsets
+// import groovy.transform.CompileStatic
+// import com.anyascii.AnyAscii
 
 /**
  * Convert a youTube playlist into a ZaraRadio playlist.
@@ -118,11 +121,22 @@ class YtToZara {
     new Ffmpeg().normalise( trackList )
   }
 
+  // @CompileStatic
   void analysePlaylist() {
     log.info 'Download complete, analysing playlist data'
     populateZaraPlaylist()
+    // renameTracks()
     saveZaraPlayList()
   }
+
+  // @groovy.transform.CompileStatic
+  // void renameTracks() {
+  //   zaraTracks.each { track ->
+  //     final String oldName = track.last()
+  //     final String newName = AnyAscii.transliterate(oldName)
+  //     log.info "Renaming $oldName to $newName"
+  //   }
+  // }
 
   void guessMp3Tags( final String trackFileName ) {
     log.info "Guessing for $trackFileName"
@@ -169,7 +183,9 @@ class YtToZara {
     log.info 'Creating playlist as files download'
     File outFile = new File( plFileName )
     String line = ''
-    BufferedReader br = new BufferedReader(new InputStreamReader(System.in))
+    BufferedReader br = new BufferedReader(
+      new InputStreamReader(System.in,StandardCharsets.UTF_8)
+    )
     while ( line != null ) {
       line = br.readLine();
       if (line != null ) {
