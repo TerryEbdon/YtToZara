@@ -10,7 +10,7 @@ class YtDlpInstaller extends Installer {
 
   @SuppressWarnings('GetterMethodCouldBeProperty')
   static String getDistributionUrl() {
-    'https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.13/yt-dlp.exe'
+    'https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp.exe'
   }
 
   YtDlpInstaller(final String installPath) {
@@ -25,7 +25,7 @@ class YtDlpInstaller extends Installer {
   @Override
   @SuppressWarnings('GetterMethodCouldBeProperty')
   String getExpectedSha() {
-    '76f574f1879a0b32f0829cdcc3aaee9654d927227f8deced7557f5486dd4e1ce'
+    '3db811b366b2da47337d2fcfdfe5bbd9a258dad3f350c54974f005df115a1545'
   }
 
   void download() {
