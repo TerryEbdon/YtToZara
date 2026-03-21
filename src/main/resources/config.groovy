@@ -4,7 +4,7 @@
 @author Terry Ebdon
 */
 
-version = 'v2.1.5'
+version = 'v2.2.0'
 
 silenceRemove {
   enabled        = true
